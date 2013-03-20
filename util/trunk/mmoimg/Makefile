@@ -5,9 +5,9 @@
 # you may want to adjust these variables
 
 # where are the mmixware sources
-MMIXDIR = ../../mmixware/trunk
+MMIXDIR = ../../../mmixware/trunk
 
-# where to install files in the bin, doc, and exe subdirectory
+# where to install files
 INSTALDIR = ../../../html
 
 #CFLAGS =  -O0  -Wall 
@@ -42,7 +42,7 @@ clean:
 	rm -f mmoimg mmoimg.exe mmoimg.tex mmoimg.pdf mmoimg.c 
 	rm -f boilerplate.w
 
-boilerplate.w:
+boilerplate.w: $(MMIXDIR)/boilerplate.w
 	cp $(MMIXDIR)/boilerplate.w .
 
 mmoimg.c: $(MMIXDIR)/mmotype.w mmoimg.ch boilerplate.w
