@@ -25,7 +25,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Build mmixal.c"
-				CommandLine="ctangle mmixal.w mmixal.c"
+				CommandLine="copy ..\..\..\mmixware\trunk\mmixal.w mmixal.w&#x0D;&#x0A;ctangle mmixal.w mmixal.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -103,7 +103,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="build mmixal.c"
-				CommandLine="ctangle mmixal.w mmixal.c"
+				CommandLine="copy ..\..\..\mmixware\trunk\mmixal.w mmixal.w&#x0D;&#x0A;ctangle mmixal.w mmixal.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"

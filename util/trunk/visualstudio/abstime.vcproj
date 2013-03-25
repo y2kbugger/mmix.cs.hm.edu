@@ -24,7 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="ctangle abstime.w abstime.c"
+				CommandLine="copy ..\..\..\mmixware\trunk\abstime.w abstime.w&#x0D;&#x0A;ctangle abstime.w abstime.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -91,7 +91,6 @@
 				Name="VCPostBuildEventTool"
 				Description="Generate abstime.h"
 				CommandLine="Debug\abstime.exe &gt; abstime.h"
-
 			/>
 		</Configuration>
 		<Configuration
@@ -105,7 +104,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="build abstime.c"
-				CommandLine="ctangle abstime.w abstime.c"
+				CommandLine="copy ..\..\..\mmixware\trunk\abstime.w abstime.w&#x0D;&#x0A;ctangle abstime.w abstime.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"

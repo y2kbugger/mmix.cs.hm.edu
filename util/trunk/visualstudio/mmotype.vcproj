@@ -25,7 +25,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="build mmotype.c"
-				CommandLine="ctangle mmotype.w mmotype.c"
+				CommandLine="copy ..\..\..\mmixware\trunk\mmotype.w .&#x0D;&#x0A;ctangle mmotype.w mmotype.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -103,7 +103,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="build mmotype.c"
-				CommandLine="ctangle mmotype.w mmotype.c"
+				CommandLine="copy ..\..\..\mmixware\trunk\mmotype.w .&#x0D;&#x0A;ctangle mmotype.w mmotype.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"

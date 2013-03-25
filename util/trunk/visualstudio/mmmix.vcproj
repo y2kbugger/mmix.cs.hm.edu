@@ -25,7 +25,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="build mmix-pipe.c "
-				CommandLine="ctangle mmix-config.w config-win.ch mmix-config.c&#x0D;&#x0A;ctangle mmix-pipe.w pipe-win.ch mmix-pipe.c&#x0D;&#x0A;ctangle mmix-mem.w mmix-mem.c&#x0D;&#x0A;ctangle mmmix.w mmmix-win.ch mmmix.c&#x0D;&#x0A;"
+				CommandLine="copy ..\..\..\mmixware\trunk\mmix-config.w .&#x0D;&#x0A;copy ..\..\..\mmixware\trunk\mmix-pipe.w .&#x0D;&#x0A;copy ..\..\..\mmixware\trunk\mmix-mem.w .&#x0D;&#x0A;copy ..\..\..\mmixware\trunk\mmmix.w .&#x0D;&#x0A;ctangle mmix-config.w config-win.ch mmix-config.c&#x0D;&#x0A;ctangle mmix-pipe.w pipe-win.ch mmix-pipe.c&#x0D;&#x0A;ctangle mmix-mem.w mmix-mem.c&#x0D;&#x0A;ctangle mmmix.w mmmix-win.ch mmmix.c&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -106,7 +106,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="build mmix-pipe.c "
-				CommandLine="ctangle mmix-config.w config-win.ch mmix-config.c&#x0D;&#x0A;ctangle mmix-pipe.w pipe-win.ch mmix-pipe.c&#x0D;&#x0A;ctangle mmix-mem.w mmix-mem.c&#x0D;&#x0A;ctangle mmmix.w mmmix-win.ch mmmix.c&#x0D;&#x0A;"
+				CommandLine="copy ..\..\..\mmixware\trunk\mmix-config.w .&#x0D;&#x0A;copy ..\..\..\mmixware\trunk\mmix-pipe.w .&#x0D;&#x0A;copy ..\..\..\mmixware\trunk\mmix-mem.w .&#x0D;&#x0A;copy ..\..\..\mmixware\trunk\mmmix.w .&#x0D;&#x0A;ctangle mmix-config.w config-win.ch mmix-config.c&#x0D;&#x0A;ctangle mmix-pipe.w pipe-win.ch mmix-pipe.c&#x0D;&#x0A;ctangle mmix-mem.w mmix-mem.c&#x0D;&#x0A;ctangle mmmix.w mmmix-win.ch mmmix.c&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
