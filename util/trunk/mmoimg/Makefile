@@ -8,7 +8,7 @@
 MMIXDIR = ../../../mmixware/trunk
 
 # where to install files
-INSTALDIR = ../../../html
+INSTALLDIR = ../../../../html
 
 #CFLAGS =  -O0  -Wall 
 CFLAGS = -O3  -Wall 
@@ -31,9 +31,9 @@ bin: .depend mmoimg
 doc: .depend mmoimg.pdf
 
 install: all
-	cp mmoimg $(HTTPROOT)/bin
-	cp mmoimg.pdf $(HTTPROOT)/doc
-	cp mmoimg.exe $(HTTPROOT)/exe
+	cp mmoimg $(INSTALLDIR)/bin
+	cp mmoimg.pdf $(INSTALLDIR)/doc
+	if test -x mmoimg.exe; then cp mmoimg.exe $(INSTALLDIR)/exe; fi
 
 
 clean:
