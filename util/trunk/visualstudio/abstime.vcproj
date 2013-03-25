@@ -24,6 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="ctangle abstime.w abstime.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -88,6 +89,9 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Generate abstime.h"
+				CommandLine="Debug\abstime.exe &gt; abstime.h"
+
 			/>
 		</Configuration>
 		<Configuration
@@ -165,6 +169,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Generate abstime.h"
 				CommandLine="Release\abstime &gt; abstime.h"
 			/>
 		</Configuration>
@@ -179,6 +184,10 @@
 			>
 			<File
 				RelativePath=".\abstime.c"
+				>
+			</File>
+			<File
+				RelativePath=".\abstime.w"
 				>
 			</File>
 		</Filter>

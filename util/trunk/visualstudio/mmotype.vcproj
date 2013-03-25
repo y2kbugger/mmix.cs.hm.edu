@@ -24,6 +24,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				Description="build mmotype.c"
+				CommandLine="ctangle mmotype.w mmotype.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -178,6 +180,10 @@
 			>
 			<File
 				RelativePath=".\mmotype.c"
+				>
+			</File>
+			<File
+				RelativePath=".\mmotype.w"
 				>
 			</File>
 		</Filter>

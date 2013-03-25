@@ -25,7 +25,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="build mmix-pipe.c "
-				CommandLine="ctangle mmix-config.w mmix-config.c&#x0D;&#x0A;ctangle mmix-pipe.w mmix-pipe.c&#x0D;&#x0A;ctangle mmix-mem.w mmix-mem.c&#x0D;&#x0A;ctangle mmmix.w mmmix.c&#x0D;&#x0A;"
+				CommandLine="ctangle mmix-config.w config-win.ch mmix-config.c&#x0D;&#x0A;ctangle mmix-pipe.w pipe-win.ch mmix-pipe.c&#x0D;&#x0A;ctangle mmix-mem.w mmix-mem.c&#x0D;&#x0A;ctangle mmmix.w mmmix-win.ch mmmix.c&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -106,7 +106,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="build mmix-pipe.c "
-				CommandLine="ctangle mmix-config.w mmix-config.c&#x0D;&#x0A;ctangle mmix-pipe.w mmix-pipe.c&#x0D;&#x0A;ctangle mmix-mem.w mmix-mem.c&#x0D;&#x0A;ctangle mmmix.w mmmix.c&#x0D;&#x0A;"
+				CommandLine="ctangle mmix-config.w config-win.ch mmix-config.c&#x0D;&#x0A;ctangle mmix-pipe.w pipe-win.ch mmix-pipe.c&#x0D;&#x0A;ctangle mmix-mem.w mmix-mem.c&#x0D;&#x0A;ctangle mmmix.w mmmix-win.ch mmmix.c&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -184,6 +184,14 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\config-win.ch"
+				>
+			</File>
+			<File
+				RelativePath=".\io-win.ch"
+				>
+			</File>
+			<File
 				RelativePath=".\mmix-arith.c"
 				>
 			</File>
@@ -209,6 +217,10 @@
 			</File>
 			<File
 				RelativePath=".\mmmix.c"
+				>
+			</File>
+			<File
+				RelativePath=".\pipe-win.ch"
 				>
 			</File>
 		</Filter>

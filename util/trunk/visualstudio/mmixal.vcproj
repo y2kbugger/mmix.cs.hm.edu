@@ -13,9 +13,6 @@
 		/>
 	</Platforms>
 	<ToolFiles>
-		<ToolFile
-			RelativePath=".\Tangle.rules"
-		/>
 	</ToolFiles>
 	<Configurations>
 		<Configuration
@@ -27,14 +24,11 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description=""
-				CommandLine=""
+				Description="Build mmixal.c"
+				CommandLine="ctangle mmixal.w mmixal.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="Tangle"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -113,9 +107,6 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="Tangle"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
