@@ -24,9 +24,3 @@ install: bin
 	  cp Release/$$file $(INSTALLDIR)/exe ; \
 	done
 
-# to make the directory ready for visual studio
-ready:
-	for file in ctangle.exe cweave.exe ctie.exe; do \
-	  cp $(INSTALLDIR)/exe/$$file . ; \
-	done
-	cp $(MMIXDIR)/*.w .
