@@ -98,8 +98,14 @@
   <ItemGroup>
     <ClCompile Include="mmix-arith.c" />
     <ClCompile Include="MMIX-Edit.cpp" />
-    <ClCompile Include="mmix-io.c" />
-    <ClCompile Include="mmix-sim.c" />
+    <ClCompile Include="mmix-io.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="mmix-sim.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ExcludedFromBuild>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="mmixal.c" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

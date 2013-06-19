@@ -6,6 +6,42 @@
 @z
 
 @x
+  if (!filename[cur_file]) filename[cur_file]="(nofile)";
+  if (message[0]=='*')
+    fprintf(stderr,"\"%s\", line %d warning: %s\n",
+                 filename[cur_file],line_no,message+1);
+  else if (message[0]=='!')
+    fprintf(stderr,"\"%s\", line %d fatal error: %s\n",
+                 filename[cur_file],line_no,message+1);
+  else {
+    fprintf(stderr,"\"%s\", line %d: %s!\n",
+                 filename[cur_file],line_no,message);
+@y
+  char *error_message[256];
+  if (!filename[cur_file]) filename[cur_file]="(nofile)";
+  if (message[0]=='*') {
+	sprintf(error_message,"warning: %s",
+                 message+1);
+	addListString(error_message, line_no, true);
+  } else if (message[0]=='!') {
+    sprintf(error_message,"fatal error: %s",
+                 message+1);
+	addListString(error_message, line_no, true);
+  } else {
+    sprintf(error_message,"%s!",
+                 message);
+	addListString(error_message, line_no, true);
+@z
+
+@x
+Char *special_name[32]={"rB","rD","rE","rH","rJ","rM","rR","rBB",
+ "rC","rN","rO","rS","rI","rT","rTT","rK","rQ","rU","rV","rG","rL",
+ "rA","rF","rP","rW","rX","rY","rZ","rWW","rXX","rYY","rZZ"};
+@y
+extern Char *special_name[32];
+@z
+
+@x
 int main(argc,argv)
   int argc;@+
   char *argv[];

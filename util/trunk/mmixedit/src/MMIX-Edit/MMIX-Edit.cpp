@@ -5,6 +5,7 @@
 #include "MMIX-Edit.h"
 #include "SciLexer.h"
 #include "Scintilla.h"
+#include <Windows.h>
 #include <stdio.h>
 
 // For nice controls look 
@@ -19,6 +20,8 @@
 #pragma comment(lib, "ComCtl32.lib")
 
 #define MAX_LOADSTRING 100
+#define ErrorMarker 3
+#define BackgroundMarker 4
 
 // Globale Variablen:
 HINSTANCE hInst;								// Aktuelle Instanz
@@ -43,7 +46,7 @@ struct DMApp {
 	HWND currentDialog;
 	HWND wMain;
 	HWND wInner;
-	HWND wError;
+	HWND wErrorList;
 	HWND wEditor;
 	bool isDirty;
 	wchar_t fullPath[MAX_PATH];
@@ -70,6 +73,7 @@ struct DMApp {
 	void EnableAMenuItem(int id, bool enable);
 	void CheckMenus();
 	void Notify(SCNotification *notification);
+	void positionCursor();
 
 	void SetAStyle(int style, COLORREF fore, COLORREF back=white, int size=-1, const char *face=0);
 	void InitialiseEditor();
@@ -113,6 +117,9 @@ void DMApp::New() {
 }
 
 void DMApp::OpenFile(const wchar_t *fileName) {
+
+	SendMessage(app.wErrorList, LB_RESETCONTENT, 0, 0);
+
 	New();
 	SendEditor(SCI_CANCEL);
 	SendEditor(SCI_SETUNDOCOLLECTION, 0);
@@ -144,6 +151,9 @@ void DMApp::OpenFile(const wchar_t *fileName) {
 }
 
 void DMApp::Open() {
+
+	SendMessage(app.wErrorList, LB_RESETCONTENT, 0, 0);
+
 	wchar_t openName[MAX_PATH] = L"\0";
 	OPENFILENAME ofn = {sizeof(OPENFILENAME)};
 	ofn.hwndOwner = wMain;
@@ -230,6 +240,12 @@ int DMApp::SaveIfUnsure() {
 
 void DMApp::Command(int id) {
 	switch (id) {
+
+	case 65536:
+		if(HIWORD(id) == LBN_DBLCLK)
+			positionCursor();
+		break;
+
 	case IDM_FILE_NEW:
 		if (SaveIfUnsure() != IDCANCEL) {
 			New();
@@ -491,6 +507,68 @@ void DMApp::InitialiseEditor() {
 	}
 	SendEditor(SCI_STYLESETBACK, SCE_HJA_STRINGEOL, RGB(0x0,0xAF,0x5F));
 	SendEditor(SCI_STYLESETEOLFILLED, SCE_HJA_STRINGEOL, 1);
+
+	SendEditor(SCI_MARKERDEFINE, ErrorMarker, SC_MARK_CIRCLE);
+	SendEditor(SCI_MARKERSETFORE, ErrorMarker, 0|0|0);
+	SendEditor(SCI_MARKERSETBACK, ErrorMarker, 255|0|0);
+	SendEditor(SCI_MARKERSETBACKSELECTED, ErrorMarker, 128|0|0);
+
+	SendEditor(SCI_MARKERDEFINE, BackgroundMarker, SC_MARK_BACKGROUND);
+	SendEditor(SCI_MARKERSETFORE, BackgroundMarker, 0|0|0);
+	SendEditor(SCI_MARKERSETBACK, BackgroundMarker, 128|0|0);
+	SendEditor(SCI_MARKERSETBACKSELECTED, BackgroundMarker, 128|0|0);
+}
+
+void DMApp::positionCursor(){
+	// ERR: SendMessage
+	int selection = (int) SendMessage(wErrorList, LB_GETCURSEL, 0, 0);
+	int lineNumber = (int) SendMessage(wErrorList, LB_GETITEMDATA, selection, 0);
+	SetFocus(wEditor);
+	SendEditor(SCI_GOTOLINE, 0, lineNumber);
+}
+
+EXTERN_C char* mmixal(FILE* file, char* filename);
+EXTERN_C char* mmixsim(FILE* file);
+
+DWORD WINAPI ConsoleThread(LPVOID lpParam){
+
+	if(AllocConsole()){
+
+		printf("look at this:");
+		mmixsim((FILE*)lpParam);
+
+	}else{
+
+		LPTSTR lpMsgBuf;
+		DWORD dw = GetLastError();
+
+		FormatMessage(
+			FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+			FORMAT_MESSAGE_FROM_SYSTEM |
+			FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL,
+			dw,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			(LPTSTR) &lpMsgBuf,
+			0, NULL );
+
+		MessageBox(app.wMain, lpMsgBuf, L"Could not start console", MB_OK);
+	}
+
+	return 0;
+}
+
+extern "C" void addListString(char* text, int lineNumber, bool isError){
+
+	wchar_t* wText = new wchar_t[strlen(text)+1];
+	mbstowcs(wText, text, strlen(text)+1);
+
+	SendMessage(app.wErrorList, LB_ADDSTRING, 0, (LPARAM) wText);
+	int index = (int)SendMessage(app.wErrorList, LB_FINDSTRING, -1, (LPARAM)wText);
+	SendMessage(app.wErrorList, LB_SETITEMDATA, index, lineNumber - 1);
+
+	app.SendEditor(SCI_MARKERADD, lineNumber - 1, ErrorMarker);
+	app.SendEditor(SCI_MARKERADD, lineNumber - 1, BackgroundMarker);
 }
 
 INT_PTR CALLBACK DialogProc( HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam ){
@@ -600,18 +678,25 @@ int APIENTRY _tWinMain(HINSTANCE instance,
 		            app.hInstance,
 		            0);
 
-	app.wError = CreateWindow(
-				L"ListBox",	
-				NULL, 
-				WS_CHILD | WS_VSCROLL | WS_HSCROLL | WS_CLIPCHILDREN, 
-				rc.left, rc.top + ((rc.bottom - rc.top) / 5) * 4,
-				rc.right - rc.left, (rc.bottom - rc.top) / 5, 
-				app.wMain, 
-				0, 
-				app.hInstance, 
-				0);
+	//app.wError = CreateDialog(app.hInstance, MAKEINTRESOURCE(IDD_ERROR), app.wMain, NULL);
+	//app.wErrorList = GetDlgItem(app.wError, IDC_ERRORLIST);
 
-	if(!app.wError){
+	app.wErrorList = CreateWindow(
+					L"ListBox",
+					NULL,
+					WS_CHILD | WS_VSCROLL | WS_CLIPCHILDREN | LBS_HASSTRINGS | LBS_NOTIFY,
+					rc.left, rc.top + ((rc.bottom - rc.top) / 5) * 4,
+					rc.right - rc.left, (rc.bottom - rc.top) / 5,
+					app.wMain,
+					0,
+					app.hInstance,
+					0);
+	
+	//SetParent(app.wErrorList, app.wMain);
+
+	//SetWindowPos(app.wErrorList, 0, rc.left, rc.top + ((rc.bottom - rc.top) / 5) * 4, rc.right - rc.left, (rc.bottom - rc.top) / 5, 0);
+
+	if(!app.wErrorList){
 		LPTSTR lpMsgBuf;
 		DWORD dw = GetLastError();
 
@@ -631,42 +716,15 @@ int APIENTRY _tWinMain(HINSTANCE instance,
 
 	app.InitialiseEditor();
 	ShowWindow(app.wEditor, SW_SHOWNORMAL);
-	ShowWindow(app.wError, SW_SHOWNORMAL);
+	ShowWindow(app.wErrorList, SW_SHOWNORMAL);
 	SetFocus(app.wEditor);
 	UpdateWindow(app.wEditor);
-	UpdateWindow(app.wError);
-
-	/*HRSRC hrsrc;
-	HGLOBAL hglobal;
-	hrsrc = FindResource(app.hInstance, MAKEINTRESOURCE(IDD_MAIN), RT_DIALOG);
-	hglobal = LoadResource(app.hInstance, hrsrc);
-
-	app.wInner = CreateDialogIndirect(app.hInstance, (LPCDLGTEMPLATE)hglobal, app.wMain, NULL);
-	SetWindowPos(app.wInner, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE);
-
-	if(!app.wInner){
-		LPTSTR lpMsgBuf;
-		DWORD dw = GetLastError(); 
-
-		FormatMessage(
-			FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-			FORMAT_MESSAGE_FROM_SYSTEM |
-			FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL,
-			dw,
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			(LPTSTR) &lpMsgBuf,
-			0, NULL );
-
-		MessageBox(app.wMain, lpMsgBuf, L"Inner Error", MB_OK);
-		return 0;
-	}
-
-	ShowWindow(app.wInner, SW_SHOW);*/
+	UpdateWindow(app.wErrorList);
 
 	// Hauptnachrichtenschleife:
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
+
 		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
 		{
 			TranslateMessage(&msg);
@@ -677,10 +735,9 @@ int APIENTRY _tWinMain(HINSTANCE instance,
 	return (int) msg.wParam;
 }
 
-EXTERN_C char* mmixal(FILE* file, char* filename);
-EXTERN_C char* mmixsim(FILE* file);
-
 void assemble(){
+
+	SendMessage(app.wErrorList, LB_RESETCONTENT, 0, 0);
 
 	FILE* src_file = _wfopen(app.fullPath, L"rb");
 	if(!src_file){
@@ -705,17 +762,14 @@ void assemble(){
 		char *path = new char[wcslen(app.fullPath) + 1];
 
 		wcstombs(path, app.fullPath, wcslen(app.fullPath) + 1);
-		wchar_t* array_t = new wchar_t[strlen(path)+1];
-		mbstowcs(array_t, path, strlen(path)+1);
-		MessageBox(app.wMain, array_t, L"", MB_OK);
-		MessageBox(app.wMain, (LPCWSTR)mmixal(src_file, path), L"MMIXAL", MB_OK);
+		mmixal(src_file, path);
 	}
 }
 
 void run(){
 
 	wchar_t* filename = app.fullPath;
-	filename[wcslen(filename)] = 'o';
+	filename[wcslen(filename)-1] = 'o';
 	FILE* src_file = _wfopen(filename, L"rb");
 	if(!src_file){
 		MessageBox(app.wMain, app.fullPath, L"Can't open mmo-file", MB_OK);
@@ -733,16 +787,10 @@ void run(){
 			(LPTSTR) &lpMsgBuf,
 			0, NULL );
 
-		MessageBox(app.wMain, lpMsgBuf, L"List Error", MB_OK);
+		MessageBox(app.wMain, lpMsgBuf, L"MMO Error", MB_OK);
 	} else {
 
-		char *path = new char[wcslen(app.fullPath) + 1];
-
-		wcstombs(path, app.fullPath, wcslen(app.fullPath) + 1);
-		wchar_t* array_t = new wchar_t[strlen(path)+1];
-		mbstowcs(array_t, path, strlen(path)+1);
-		MessageBox(app.wMain, array_t, L"", MB_OK);
-		MessageBox(app.wMain, (LPCWSTR)mmixsim(src_file), L"MMIXAL", MB_OK);
+		CreateThread(0, 1024, ConsoleThread, (LPVOID) src_file, 0, 0);
 	}
 }
 
@@ -790,12 +838,16 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //  WM_DESTROY	- Beenden-Meldung anzeigen und zurückgeben
 //
 //
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, UINT wParam, LPARAM lParam)
 {
 	int wmId, wmEvent;
 	PAINTSTRUCT ps;
 	HDC hdc;
 	HMENU menuBar, subMenu;
+
+	WORD word;
+
+	LPNMHDR hdr;
 
 	switch (message)
 	{
@@ -807,7 +859,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		if (wParam != 1) {
 			RECT rc;
 			::GetClientRect(hWnd, &rc);
-			SetWindowPos(app.wError, 0, rc.left, rc.top + ((rc.bottom - rc.top) / 5) * 4, rc.right - rc.left, (rc.bottom - rc.top) / 5, 0);
+			//SetWindowPos(app.wError, 0, rc.left, rc.top + ((rc.bottom - rc.top) / 5) * 4, rc.right - rc.left, (rc.bottom - rc.top) / 5, 0);
+			SetWindowPos(app.wErrorList, 0, rc.left, rc.top + ((rc.bottom - rc.top) / 5) * 4, rc.right - rc.left, (rc.bottom - rc.top) / 5, 0);
 			SetWindowPos(app.wEditor, 0, rc.left, rc.top, rc.right - rc.left, ((rc.bottom - rc.top) / 5) * 4, 0);
 		}
 		return 0;
@@ -818,15 +871,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		switch(LOWORD(wParam)){
 
-		case IDD_MENU_RUN:
-			app.SaveIfUnsure();
-			assemble();
+		case 0:
+			if(HIWORD(wParam) == LBN_DBLCLK){
+				app.positionCursor();
+			}
 			break;
 
 		case IDD_MENU_COMPILE:
 			app.SaveIfUnsure();
 			assemble();
+			break;
+
+		case IDD_MENU_RUN:
+			app.SaveIfUnsure();
+			assemble();
 			run();
+			break;
+
+		case IDC_ERRORLIST:
+			if(HIWORD(wParam) == LBN_DBLCLK){
+				
+				app.positionCursor();
+			}
 			break;
 
 		case IDM_ABOUT:
@@ -838,6 +904,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_NOTIFY:
+
+		hdr = (LPNMHDR)lParam;
+
+		switch(hdr->code){
+			
+			case LBN_SETFOCUS:
+				app.positionCursor();
+				break;
+
+			case LBN_DBLCLK:
+				app.positionCursor();
+				break;
+
+			default:
+				break;
+		}
+
 		app.Notify(reinterpret_cast<SCNotification *>(lParam));
 		return 0;
 
@@ -861,7 +944,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_CTLCOLORLISTBOX:
-		if((HWND)lParam == app.wError){
+		if((HWND)lParam == app.wErrorList){
 
 			SetBkColor((HDC)wParam, RGB(0, 0, 0));
 			SetTextColor((HDC)wParam, RGB(255, 255, 255));
@@ -878,10 +961,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 // Meldungshandler für Infofeld.
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	HWND ErrorHandle;
+	HWND ErrorListHandle;
+
 	UNREFERENCED_PARAMETER(lParam);
 	switch (message)
 	{
 	case WM_INITDIALOG:
+
+		/*ErrorHandle = GetDlgItem(app.wMain, IDD_ERROR);
+		ErrorListHandle = GetDlgItem(app.wError, IDC_ERRORLIST);
+
+		RECT rc;
+		::GetClientRect(hDlg, &rc);
+		SetWindowPos(ErrorListHandle, 0, rc.left, rc.top + ((rc.bottom - rc.top) / 5) * 4, rc.right - rc.left, (rc.bottom - rc.top) / 5, 0);
+		SetWindowPos(ErrorHandle, 0, rc.left, rc.top + ((rc.bottom - rc.top) / 5) * 4, rc.right - rc.left, (rc.bottom - rc.top) / 5, 0);
+		*/
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND:

@@ -31,6 +31,36 @@ g[rN].l=time(NULL); /* see comment and warning above */
 @z
 
 @x
+extern void mmix_io_init @,@,@[ARGS((void))@];
+extern octa mmix_fopen @,@,@[ARGS((unsigned char,octa,octa))@];
+extern octa mmix_fclose @,@,@[ARGS((unsigned char))@];
+extern octa mmix_fread @,@,@[ARGS((unsigned char,octa,octa))@];
+extern octa mmix_fgets @,@,@[ARGS((unsigned char,octa,octa))@];
+extern octa mmix_fgetws @,@,@[ARGS((unsigned char,octa,octa))@];
+extern octa mmix_fwrite @,@,@[ARGS((unsigned char,octa,octa))@];
+extern octa mmix_fputs @,@,@[ARGS((unsigned char,octa))@];
+extern octa mmix_fputws @,@,@[ARGS((unsigned char,octa))@];
+extern octa mmix_fseek @,@,@[ARGS((unsigned char,octa))@];
+extern octa mmix_ftell @,@,@[ARGS((unsigned char))@];
+extern void print_trip_warning @,@,@[ARGS((int,octa))@];
+extern void mmix_fake_stdin @,@,@[ARGS((FILE*))@];
+@y
+extern void mmix_io_init @,@,@[ARGS((void))@];
+extern octa mmix_fopen @,@,@[ARGS((unsigned char,octa,octa))@];
+extern octa mmix_fclose @,@,@[ARGS((unsigned char))@];
+extern octa mmix_fread @,@,@[ARGS((unsigned char,octa,octa))@];
+extern octa mmix_fgets @,@,@[ARGS((unsigned char,octa,octa))@];
+extern octa mmix_fgetws @,@,@[ARGS((unsigned char,octa,octa))@];
+extern octa mmix_fwrite @,@,@[ARGS((unsigned char,octa,octa))@];
+extern octa mmix_fputs @,@,@[ARGS((unsigned char,octa))@];
+extern octa mmix_fputws @,@,@[ARGS((unsigned char,octa))@];
+extern octa mmix_fseek @,@,@[ARGS((unsigned char,octa))@];
+extern octa mmix_ftell @,@,@[ARGS((unsigned char))@];
+extern void print_trip_warning @,@,@[ARGS((int,octa))@];
+extern void mmix_fake_stdin @,@,@[ARGS((FILE*))@];
+@z
+
+@x
 #include "abstime.h"
 @y
 @z
