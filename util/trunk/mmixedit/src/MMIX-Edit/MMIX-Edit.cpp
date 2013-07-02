@@ -5,8 +5,11 @@
 #include "MMIX-Edit.h"
 #include "SciLexer.h"
 #include "Scintilla.h"
+#include "FCNTL.H"
 #include <Windows.h>
+#include <ios>
 #include <stdio.h>
+#include <io.h>
 
 // For nice controls look 
 #pragma comment(linker, \
@@ -117,7 +120,8 @@ void DMApp::New() {
 }
 
 void DMApp::OpenFile(const wchar_t *fileName) {
-
+	
+	app.SendEditor(SCI_MARKERDELETEALL, -1);
 	SendMessage(app.wErrorList, LB_RESETCONTENT, 0, 0);
 
 	New();
@@ -151,7 +155,8 @@ void DMApp::OpenFile(const wchar_t *fileName) {
 }
 
 void DMApp::Open() {
-
+	
+	app.SendEditor(SCI_MARKERDELETEALL, -1);
 	SendMessage(app.wErrorList, LB_RESETCONTENT, 0, 0);
 
 	wchar_t openName[MAX_PATH] = L"\0";
@@ -508,23 +513,22 @@ void DMApp::InitialiseEditor() {
 	SendEditor(SCI_STYLESETBACK, SCE_HJA_STRINGEOL, RGB(0x0,0xAF,0x5F));
 	SendEditor(SCI_STYLESETEOLFILLED, SCE_HJA_STRINGEOL, 1);
 
-	SendEditor(SCI_MARKERDEFINE, ErrorMarker, SC_MARK_CIRCLE);
-	SendEditor(SCI_MARKERSETFORE, ErrorMarker, 0|0|0);
-	SendEditor(SCI_MARKERSETBACK, ErrorMarker, 255|0|0);
-	SendEditor(SCI_MARKERSETBACKSELECTED, ErrorMarker, 128|0|0);
+	SendEditor(SCI_MARKERDEFINE, ErrorMarker, SC_MARK_FULLRECT);
+	SendEditor(SCI_MARKERSETFORE, ErrorMarker, RGB(0x7F, 0x7F, 0x7F));
+	SendEditor(SCI_MARKERSETBACK, ErrorMarker, RGB(0xFF, 0x0, 0x0));
+	SendEditor(SCI_MARKERSETBACKSELECTED, ErrorMarker, RGB(0x7F, 0x0, 0x0));
 
 	SendEditor(SCI_MARKERDEFINE, BackgroundMarker, SC_MARK_BACKGROUND);
-	SendEditor(SCI_MARKERSETFORE, BackgroundMarker, 0|0|0);
-	SendEditor(SCI_MARKERSETBACK, BackgroundMarker, 128|0|0);
-	SendEditor(SCI_MARKERSETBACKSELECTED, BackgroundMarker, 128|0|0);
+	SendEditor(SCI_MARKERSETBACK, BackgroundMarker, RGB(0x9F, 0x9F, 0x9F));
+	SendEditor(SCI_MARKERSETBACKSELECTED, BackgroundMarker, RGB(0x8F, 0x8F, 0x8F));
 }
 
 void DMApp::positionCursor(){
 	// ERR: SendMessage
 	int selection = (int) SendMessage(wErrorList, LB_GETCURSEL, 0, 0);
 	int lineNumber = (int) SendMessage(wErrorList, LB_GETITEMDATA, selection, 0);
+	SendEditor(SCI_GOTOLINE, lineNumber, 0);
 	SetFocus(wEditor);
-	SendEditor(SCI_GOTOLINE, 0, lineNumber);
 }
 
 EXTERN_C char* mmixal(FILE* file, char* filename);
@@ -532,28 +536,38 @@ EXTERN_C char* mmixsim(FILE* file);
 
 DWORD WINAPI ConsoleThread(LPVOID lpParam){
 
-	if(AllocConsole()){
+	int hConHandle;
+	long lStdHandle;
 
-		printf("look at this:");
-		mmixsim((FILE*)lpParam);
+	CONSOLE_SCREEN_BUFFER_INFO coninfo;
+	FILE* file;
 
-	}else{
+	AllocConsole();
 
-		LPTSTR lpMsgBuf;
-		DWORD dw = GetLastError();
+	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &coninfo);
+	coninfo.dwSize.Y = 500;
+	SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), coninfo.dwSize);
+	lStdHandle = (long)GetStdHandle(STD_OUTPUT_HANDLE);
+	hConHandle = _open_osfhandle(lStdHandle, _O_TEXT);
+	file = _fdopen(hConHandle, "w");
+	*stdout = *file;
+	setvbuf(stdout, NULL, _IONBF, 0);
 
-		FormatMessage(
-			FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-			FORMAT_MESSAGE_FROM_SYSTEM |
-			FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL,
-			dw,
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			(LPTSTR) &lpMsgBuf,
-			0, NULL );
+	lStdHandle = (long)GetStdHandle(STD_INPUT_HANDLE);
+	hConHandle = _open_osfhandle(lStdHandle, _O_TEXT);
+	file = _fdopen(hConHandle, "r");
+	*stdin = *file;
+	setvbuf(stdin, NULL, _IONBF, 0);
 
-		MessageBox(app.wMain, lpMsgBuf, L"Could not start console", MB_OK);
-	}
+	lStdHandle = (long)GetStdHandle(STD_ERROR_HANDLE);
+	hConHandle = _open_osfhandle(lStdHandle, _O_TEXT);
+	file = _fdopen(hConHandle, "w");
+	*stderr = *file;
+	setvbuf(stderr, NULL, _IONBF, 0);
+
+	std::ios_base::sync_with_stdio();
+
+	mmixsim((FILE*)lpParam);
 
 	return 0;
 }
@@ -563,9 +577,9 @@ extern "C" void addListString(char* text, int lineNumber, bool isError){
 	wchar_t* wText = new wchar_t[strlen(text)+1];
 	mbstowcs(wText, text, strlen(text)+1);
 
-	SendMessage(app.wErrorList, LB_ADDSTRING, 0, (LPARAM) wText);
-	int index = (int)SendMessage(app.wErrorList, LB_FINDSTRING, -1, (LPARAM)wText);
-	SendMessage(app.wErrorList, LB_SETITEMDATA, index, lineNumber - 1);
+	int index = (int)SendMessage(app.wErrorList, LB_ADDSTRING, 0, (LPARAM) wText);
+	int data = lineNumber - 1;
+	SendMessage(app.wErrorList, LB_SETITEMDATA, (WPARAM)index, (LPARAM)data);
 
 	app.SendEditor(SCI_MARKERADD, lineNumber - 1, ErrorMarker);
 	app.SendEditor(SCI_MARKERADD, lineNumber - 1, BackgroundMarker);
@@ -684,7 +698,7 @@ int APIENTRY _tWinMain(HINSTANCE instance,
 	app.wErrorList = CreateWindow(
 					L"ListBox",
 					NULL,
-					WS_CHILD | WS_VSCROLL | WS_CLIPCHILDREN | LBS_HASSTRINGS | LBS_NOTIFY,
+					WS_CHILD | WS_VSCROLL | WS_CLIPCHILDREN | LBS_HASSTRINGS | LBS_NOTIFY | LBS_HASSTRINGS,
 					rc.left, rc.top + ((rc.bottom - rc.top) / 5) * 4,
 					rc.right - rc.left, (rc.bottom - rc.top) / 5,
 					app.wMain,
@@ -736,7 +750,7 @@ int APIENTRY _tWinMain(HINSTANCE instance,
 }
 
 void assemble(){
-
+	app.SendEditor(SCI_MARKERDELETEALL, -1);
 	SendMessage(app.wErrorList, LB_RESETCONTENT, 0, 0);
 
 	FILE* src_file = _wfopen(app.fullPath, L"rb");

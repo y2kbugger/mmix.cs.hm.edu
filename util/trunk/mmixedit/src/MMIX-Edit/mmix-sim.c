@@ -1361,8 +1361,9 @@ default:if(usage){
 fprintf(stderr,
 "Usage: %s <options> progfile command-line-args...\n",myself);
 
+#line 85 "mmix-sim.ch"
 for(k= 0;usage_help[k][0];k++)fprintf(stderr,"%s",usage_help[k]);
-exit(-1);
+#line 2982 "mmix-sim.w"
 }else for(k= 0;usage_help[k][1]!='b';k++)printf("%s",usage_help[k]);
 return;
 }
@@ -1480,7 +1481,7 @@ fputc(t&0xff,dump_file);
 #line 2890 "mmix-sim.w"
 
 
-#line 75 "mmix-sim.ch"
+#line 73 "mmix-sim.ch"
 char*mmixsim(FILE*exFile)
 #line 2895 "mmix-sim.w"
 {
@@ -1729,12 +1730,13 @@ if(ll->tet)inst_ptr= x;
 resuming= true;
 rop= RESUME_AGAIN;
 g[rX].l= ((tetra)UNSAVE<<24)+255;
+#line 108 "mmix-sim.ch"
 if(dump_file){
 x.l= 1;
 dump(mem_root);
 dump_tet(0),dump_tet(0);
-exit(0);
 }
+#line 3394 "mmix-sim.w"
 
 /*:164*/
 #line 2901 "mmix-sim.w"

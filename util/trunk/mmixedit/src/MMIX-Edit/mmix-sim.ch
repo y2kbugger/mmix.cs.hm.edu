@@ -79,6 +79,13 @@ char* mmixsim(FILE* exFile)
 @z
 
 @x
+    for (k=0;usage_help[k][0];k++) fprintf(stderr,"%s",usage_help[k]);
+    exit(-1);
+@y
+    for (k=0;usage_help[k][0];k++) fprintf(stderr,"%s",usage_help[k]);
+@z
+
+@x
 loc=incr(x,8*(argc+1));
 for (k=0; k<argc; k++,cur_arg++) {
   ll=mem_find(x);
@@ -88,4 +95,19 @@ for (k=0; k<argc; k++,cur_arg++) {
   x.l+=8, loc.l+=8+(strlen(*cur_arg)&-8);
 }
 @y
+@z
+
+@x
+if (dump_file) {
+  x.l=1;
+  dump(mem_root);
+  dump_tet(0),dump_tet(0);
+  exit(0);
+}
+@y
+if (dump_file) {
+  x.l=1;
+  dump(mem_root);
+  dump_tet(0),dump_tet(0);
+}
 @z
