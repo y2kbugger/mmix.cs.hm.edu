@@ -19,6 +19,20 @@ mmo_file=exFile;
 @z
 
 @x
+@d mmo_err { 
+     fprintf(stderr,"Bad object file! (Try running MMOtype.)\n");
+@.Bad object file@>
+     exit(-4);
+   }
+@y
+@d mmo_err { 
+     fprintf(stderr,"Bad object file! (Try running MMOtype.)\n");
+@.Bad object file@>
+     return 0;
+   }
+@z
+
+@x
 (ll-5)->tet=argc; /* and $\$0=|argc|$ */
 @y
 // (ll-5)->tet=argc; /* and $\$0=|argc|$ */

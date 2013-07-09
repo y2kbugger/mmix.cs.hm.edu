@@ -19,7 +19,7 @@
 #define mmo_err { \
 fprintf(stderr,"Bad object file! (Try running MMOtype.)\n") ; \
  \
-exit(-4) ; \
+return 0; \
 } \
 
 #define mmo_load(loc,val) ll= mem_find(loc) ,ll->tet^= val \
@@ -633,7 +633,7 @@ char*trap_format[]= {
 /*:110*//*113:*/
 #line 2440 "mmix-sim.w"
 
-#line 48 "mmix-sim.ch"
+#line 62 "mmix-sim.ch"
 extern void mmix_io_init ARGS((void));
 extern octa mmix_fopen ARGS((unsigned char,octa,octa));
 extern octa mmix_fclose ARGS((unsigned char));
@@ -1361,7 +1361,7 @@ default:if(usage){
 fprintf(stderr,
 "Usage: %s <options> progfile command-line-args...\n",myself);
 
-#line 85 "mmix-sim.ch"
+#line 99 "mmix-sim.ch"
 for(k= 0;usage_help[k][0];k++)fprintf(stderr,"%s",usage_help[k]);
 #line 2982 "mmix-sim.w"
 }else for(k= 0;usage_help[k][1]!='b';k++)printf("%s",usage_help[k]);
@@ -1481,7 +1481,7 @@ fputc(t&0xff,dump_file);
 #line 2890 "mmix-sim.w"
 
 
-#line 73 "mmix-sim.ch"
+#line 87 "mmix-sim.ch"
 char*mmixsim(FILE*exFile)
 #line 2895 "mmix-sim.w"
 {
@@ -1655,7 +1655,7 @@ while(!postamble);
 aux.h= 0x60000000;aux.l= 0x18;
 ll= mem_find(aux);
 (ll-1)->tet= 2;
-#line 24 "mmix-sim.ch"
+#line 38 "mmix-sim.ch"
 
 #line 1050 "mmix-sim.w"
 (ll-4)->tet= 0x40000000;
@@ -1685,7 +1685,7 @@ if(!buffer)panic("Can't allocate source line buffer");
 
 g[rK]= neg_one;
 g[rN].h= (VERSION<<24)+(SUBVERSION<<16)+(SUBSUBVERSION<<8);
-#line 30 "mmix-sim.ch"
+#line 44 "mmix-sim.ch"
 g[rN].l= time(NULL);
 #line 1807 "mmix-sim.w"
 g[rT].h= 0x80000005;
@@ -1730,7 +1730,7 @@ if(ll->tet)inst_ptr= x;
 resuming= true;
 rop= RESUME_AGAIN;
 g[rX].l= ((tetra)UNSAVE<<24)+255;
-#line 108 "mmix-sim.ch"
+#line 122 "mmix-sim.ch"
 if(dump_file){
 x.l= 1;
 dump(mem_root);
