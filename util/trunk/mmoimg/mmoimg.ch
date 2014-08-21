@@ -25,7 +25,8 @@ to the memory byte at this address. Bytes with lower addresses are ignored.
 The base address is rounded down to a multiple of 4. The default base
 address is 8000 0000 0000 0000 creating an image of the operating system memory.
 
-This program was written by Martin Ruckert as a change file to the mmotype program of Donald E. Knuth.
+This program was written by Martin Ruckert as a change file to the 
+mmotype program of Donald E. Knuth.
 @z
 #include <string.h>
 @x
@@ -72,8 +73,10 @@ if (j!=argc-1) {
   fprintf(stderr,"Usage: %s [-l] [-v] [-b hexbase] [-u hexlimit] mmofile\n"
                  "       -l          show listing\n"
                  "       -v          be verbose\n"
-                 "       -b hexbase  start image at hexbase (default #8000000000000000)\n"
-                 "       -u hexlimit stop image before upper hexlimit (default #FFFFFFFFFFFFFFFF)\n",argv[0]);
+                 "       -b hexbase  start image at hexbase"
+                            " (default #8000000000000000)\n"
+                 "       -u hexlimit stop image before upper hexlimit"
+                            " (default #FFFFFFFFFFFFFFFF)\n",argv[0]);
 @.Usage: ...@>
   exit(-1);
 }
@@ -184,7 +187,8 @@ tetra tet;
   if (x.l>loc.l) x.h--;
   i = x.l>>2;
   if (x.h!=0 || i>=max_image_tetras) 
-  { fprintf(stderr,"Location %08x%08x to large for image (max %x)",loc.h,loc.l, max_image_tetras*4);
+  { fprintf(stderr,"Location %08x%08x to large for image (max %x)",
+            loc.h,loc.l, max_image_tetras*4);
     exit(1);
   }
   image[i] ^= tet;
