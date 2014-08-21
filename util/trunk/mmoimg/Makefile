@@ -9,6 +9,14 @@ MMIXDIR = ../../../mmixware/trunk
 
 # where to install files
 INSTALLDIR = ../../../../html
+ifdef LINUX32
+BINDIR=$(INSTALLDIR)/bin32
+endif
+
+ifdef LINUX64
+BINDIR=$(INSTALLDIR)/bin64
+endif
+
 
 #CFLAGS =  -O0  -Wall 
 CFLAGS = -O3  -Wall 
@@ -25,7 +33,7 @@ bin: .depend mmoimg
 doc: .depend mmoimg.pdf
 
 install: all
-	cp mmoimg $(INSTALLDIR)/bin
+	cp mmoimg $(BINDIR)
 	cp mmoimg.pdf $(INSTALLDIR)/doc
 	if test -x mmoimg.exe; then cp mmoimg.exe $(INSTALLDIR)/exe; fi
 
