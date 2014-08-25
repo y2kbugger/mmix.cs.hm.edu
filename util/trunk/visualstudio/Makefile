@@ -12,15 +12,19 @@ INSTALLDIR = ../../../../html
 
 MMIXWAREEXE= mmix.exe mmmix.exe mmixal.exe mmotype.exe 
 
-all: bin doc
+all: bin pdf
 
 bin:
-	echo use visual studio to build the files
-doc:
+	for file in $(MMIXWAREEXE); do \
+	  if test -r Release/$$file ; then \
+	    cp Release/$$file $(INSTALLDIR)/exe ; \
+	  else \
+	    echo $$file missing ; \
+	  fi \
+	done
+
+pdf:
 	echo no documents here
 
-install: bin
-	for file in $(MMIXWAREEXE); do \
-	  cp Release/$$file $(INSTALLDIR)/exe ; \
-	done
+clean:
 
