@@ -9,16 +9,15 @@ MMIXDIR = ../../../mmixware/trunk
 
 # where to install files
 INSTALLDIR = ../../../../html
-BINDIR=$(INSTALLDIR)/bin
 CC = gcc
 
-ifdef OSX
+ifeq "$(OS)" "OSX"
 # making fat binaries 
 CFLAGS = -O2 -force_cpusubtype_ALL -mmacosx-version-min=10.4 -arch x86_64 -arch i386 -arch ppc
 BINDIR=$(INSTALLDIR)/osx
 endif
 
-ifdef LINUX32
+ifeq "$(OS)" "LINUX32"
 CFLAGS = -O3 -static
 BINDIR=$(INSTALLDIR)/bin
 endif
