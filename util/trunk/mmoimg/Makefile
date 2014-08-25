@@ -15,10 +15,12 @@ CC = gcc
 ifdef OSX
 # making fat binaries 
 CFLAGS = -O2 -force_cpusubtype_ALL -mmacosx-version-min=10.4 -arch x86_64 -arch i386 -arch ppc
+BINDIR=$(INSTALLDIR)/osx
 endif
 
 ifdef LINUX32
 CFLAGS = -O3 -static
+BINDIR=$(INSTALLDIR)/bin
 endif
 
 # probably no changes are needed below
