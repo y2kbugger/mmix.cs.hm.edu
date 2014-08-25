@@ -9,34 +9,37 @@ MMIXDIR = ../../../mmixware/trunk
 
 # where to install files
 INSTALLDIR = ../../../../html
-ifdef LINUX32
-BINDIR=$(INSTALLDIR)/bin32
-endif
-
-ifdef LINUX64
-BINDIR=$(INSTALLDIR)/bin64
-endif
-
-
-#CFLAGS =  -O0  -Wall 
-CFLAGS = -O3  -Wall 
+BINDIR=$(INSTALLDIR)/bin
 CC = gcc
+
+ifdef OSX
+# making fat binaries 
+CFLAGS = -O2 -force_cpusubtype_ALL -mmacosx-version-min=10.4 -arch x86_64 -arch i386 -arch ppc
+endif
+
+ifdef LINUX32
+CFLAGS = -O3 -static
+endif
 
 # probably no changes are needed below
 
 INCDIRS = -I $(MMIXDIR)
 
 
-all: bin doc
+all: bin pdf
+
+MMIXWAREEXE= mmoimg.exe
 
 bin: .depend mmoimg
-doc: .depend mmoimg.pdf
+	for file in $(MMIXWAREEXE); do \
+	  if test -r Release/$$file ; then \
+	    cp Release/$$file $(INSTALLDIR)/exe ; \
+	  else \
+	    echo $$file missing ; \
+	  fi \
+	done
 
-install: all
-	cp mmoimg $(BINDIR)
-	cp mmoimg.pdf $(INSTALLDIR)/doc
-	if test -x mmoimg.exe; then cp mmoimg.exe $(INSTALLDIR)/exe; fi
-
+pdf: .depend mmoimg.pdf
 
 clean:
 	rm -f *~ *.bak
@@ -56,9 +59,10 @@ mmoimg.tex:  $(MMIXDIR)/mmotype.w mmoimg.ch
 mmoimg.pdf: mmoimg.tex
 	pdftex mmoimg.tex
 	pdftex mmoimg.tex
+	cp mmoimg.pdf $(INSTALLDIR)/doc
 
 mmoimg: mmoimg.c
-	$(CC) $(CFLAGS) mmoimg.c -o mmoimg
+	$(CC) $(CFLAGS) mmoimg.c -o $(BINDIR)/mmoimg
 
 TAGS:
 	etags *.c *.h $(MMIXDIR)/*.c $(MMIXDIR)/*.h
