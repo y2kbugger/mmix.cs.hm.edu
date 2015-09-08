@@ -11,7 +11,10 @@ you need:
 
 File locations
 --------------
-ctangle.exe should be on your search path, so that visual studio will find it.
+You have to make sure the path to this ctangle.exe is on the search path
+of visual studio (Try Tools->Options->Projects ans Solutions-> VC Directories)
+or a similar path depending on the version of Visual Studio. Then you
+should be able to open the solution file and build the library.
 
 The installation process assumes that you 
 download the content of this directory
