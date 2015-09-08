@@ -2,10 +2,6 @@
 #   Makefile for windos executables using MS Visual Studio
 #
 
-# you may want to adjust these variables
-
-# where are the mmixware sources
-MMIXDIR = ../../../mmixware/trunk
 
 # where to install files
 INSTALLDIR = ../../../../html

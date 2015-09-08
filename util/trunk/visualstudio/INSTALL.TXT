@@ -1,0 +1,43 @@
+Compiling the MMIX programs
+---------------------------
+
+Prerequisites
+-------------
+you need:
+  ctangle.exe which you can get from mmix.cs.hm.edu
+  the program ctangle.exe should be on your search path
+  the mmixware sources which you can get from mmix.cs.hm.edu
+  the change files, project files, and solution file from this directory
+
+File locations
+--------------
+ctangle.exe should be on your search path, so that visual studio will find it.
+
+The installation process assumes that you 
+download the content of this directory
+into some windows directory, for example "C:\home\mmix\". 
+Let's call this directory the source directory.
+
+Then you must download the mmixware sources into a 
+subdirectory of the source directory that must have the name mmixware.
+
+Then we have, for example, the following source tree:
+C:\home\mmix\mmixware\abstime.w
+C:\home\mmix\mmixware\alpha.mms
+...
+C:\home\mmix\mmixware\zero.mms
+C:\home\mmix\abstime.vcproj
+C:\home\mmix\arith-win.ch
+...
+C:\home\mmix\README.TXT
+
+Compilation
+-----------
+The rest is easy. Double-click on the file mmix.sln, which
+should open visual studio. Use the menu to "build" the project.
+The newly generated files mmix.exe mmixal.exe mmmix.exe and mmotype.exe
+should then be in the release subdirectory.
+
+
+
+

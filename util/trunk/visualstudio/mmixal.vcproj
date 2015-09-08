@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="mmixal"
 	ProjectGUID="{B0BD2341-516A-4FC7-B239-0BC4996426C9}"
 	RootNamespace="mmixal"
@@ -20,12 +20,12 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			CharacterSet="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description="Build mmixal.c"
-				CommandLine="copy ..\..\..\mmixware\trunk\mmixal.w mmixal.w&#x0D;&#x0A;ctangle mmixal.w mmixal.c"
+				Description="Build C files"
+				CommandLine="copy mmixware\boilerplate.w boilerplate.w&#x0D;&#x0A;ctangle mmixware\mmixal.w mmixal-win.ch mmixal.c&#x0D;&#x0A;ctangle mmixware\mmix-arith.w arith-win.ch mmix-arith.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -41,11 +41,12 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				UseUnicodeResponseFiles="false"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -72,6 +73,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				UseUnicodeResponseFiles="false"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -97,13 +99,15 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			UseOfATL="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="0"
 			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description="build mmixal.c"
-				CommandLine="copy ..\..\..\mmixware\trunk\mmixal.w mmixal.w&#x0D;&#x0A;ctangle mmixal.w mmixal.c"
+				Description="Build C files"
+				CommandLine="copy mmixware\boilerplate.w boilerplate.w&#x0D;&#x0A;ctangle mmixware\mmixal.w mmixal-win.ch mmixal.c&#x0D;&#x0A;ctangle mmixware\mmix-arith.w arith-win.ch mmix-arith.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -119,8 +123,9 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE"
-				RuntimeLibrary="2"
+				UseUnicodeResponseFiles="false"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
+				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -149,6 +154,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				UseUnicodeResponseFiles="false"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -179,19 +185,19 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\arith-win.ch"
+				>
+			</File>
+			<File
 				RelativePath=".\mmix-arith.c"
 				>
 			</File>
 			<File
-				RelativePath=".\mmix-arith.w"
+				RelativePath=".\mmixal-win.ch"
 				>
 			</File>
 			<File
 				RelativePath=".\mmixal.c"
-				>
-			</File>
-			<File
-				RelativePath=".\mmixal.w"
 				>
 			</File>
 		</Filter>
@@ -200,6 +206,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\abstime.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

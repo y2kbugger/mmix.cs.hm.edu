@@ -4,5 +4,5 @@
 @y
 #include <string.h>
 
-#pragma warning(disable : 4244 4996)
+#pragma warning(disable : 4267 4996)
 @z

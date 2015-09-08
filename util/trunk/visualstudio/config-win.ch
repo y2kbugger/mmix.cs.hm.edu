@@ -1,8 +1,8 @@
 
 @x
-#include "mmix-pipe.h"
+#include <limits.h> /* |INT_MAX| */
 @y
-#include "mmix-pipe.h"
-#pragma warning(disable : 4996 )
-@z
+#include <limits.h> /* |INT_MAX| */
 
+#pragma warning(disable : 4996)
+@z
