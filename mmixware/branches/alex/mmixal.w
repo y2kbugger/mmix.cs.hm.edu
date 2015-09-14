@@ -369,7 +369,7 @@ $$\vbox{\halign{$#$\hfil\cr
 \<alias operation>\is\.{SET}\mid\.{LDA}\cr
 \<pseudo-operation>\is\.{IS}\mid\.{LOC}\mid\.{PREFIX}\mid
    \.{GREG}\mid\.{LOCAL}\mid\.{BSPEC}\mid\.{ESPEC}\cr
-\hskip12pc\mid\.{BYTE}\mid\.{WYDE}\mid\.{TETRA}\mid\.{OCTA}\cr
+\hskip12pc\mid\.{BYTE}\mid\.{WYDE}\mid\.{TETRA}\mid\.{OCTA}\mid\.{FILE}\cr
 }}$$
 
 @ \MMIX\ operations like \.{ADD} require exactly three expressions as
@@ -550,6 +550,18 @@ is advanced by $8n$ if there are $n$~expressions in the list. Any or all
 of the expressions may be future references, but they should all
 be defined as pure numbers eventually.
 @.OCTA@>
+
+\bull \<label> \.{FILE} \<string>
+defines the label to be the current location, if the label field is nonempty;
+then it uses the given \<string> as filename, opens the file, 
+assembles one byte for each byte found in this file, and
+advances the current location by the number of bytes. 
+
+For example, if the file \.{foo.bar} contains the six bytes 
+\Hex{12}, \Hex{34}, \Hex{56}, \Hex{78}, \Hex{9A}, and  \Hex{BC}, 
+the instruction `\.{FILE}~\.{"foo.bar"}' is equivalent to 
+the instruction `\.{BYTE}~\.{\#12,\#34,\#56,\#78,\#9A,\#BC}'.
+@.FILE@>
 
 @ Global registers are important for accessing memory in \MMIX\ programs.
 They could be allocated by hand, and defined with \.{IS} instructions,
@@ -1092,6 +1104,14 @@ as a comment by the assembler.
 {
   for (p=buffer+1;isspace(*p);p++);
   for (j=0;isdigit(*p);p++) j=10*j+*p-'0';
+  @<Read a filename@>@;
+  if (k>0)
+  { cur_file=k;
+    line_no=j-1;
+  }
+}
+
+@ @<Read a filename@>=
   for (;isspace(*p);p++);
   if (*p=='\"') {
     if (!filename[filename_count]) {
@@ -1103,20 +1123,20 @@ as a comment by the assembler.
     for (p++,k=0;*p && *p!='\"' && k<FILENAME_MAX; p++,k++)
       filename[filename_count][k]=*p;
     if (k==FILENAME_MAX) panic("Capacity exceeded: File name too long");
-    if (*p=='\"' && *(p-1)!='\"') { /* yes, it's a line directive */
+    if (*p=='\"' && *(p-1)!='\"') { /* yes, it's a filename */
       filename[filename_count][k]='\0';
       for (k=0;strcmp(filename[k],filename[filename_count])!=0;k++);
       if (k==filename_count) {
         if (filename_count==256)
           panic("Capacity exceeded: More than 256 file names");
         filename_count++;
-      }
-      cur_file=k;
-      line_no=j-1;
-    }
-  }
-}
-
+      } 
+      else free(filename[filename_count]); 
+	} 
+	else k=-1;
+  } 
+  else k=-1;
+  
 @ Archaic versions of the \CEE/ library do not define |FILENAME_MAX|.
 
 @<Preprocessor definitions@>=
@@ -1635,7 +1655,7 @@ typedef struct {
 @#
 typedef enum {
 @!SET=0x100,@!IS,@!LOC,@!PREFIX,@!BSPEC,@!ESPEC,@!GREG,@!LOCAL,@/
-@!BYTE,@!WYDE,@!TETRA,@!OCTA}@+@!pseudo_op;
+@!BYTE,@!WYDE,@!TETRA,@!OCTA,@!BYTEFILE}@+@!pseudo_op;
 
 @ @<Glob...@>=
 op_spec op_init_table[]={@/
@@ -1953,6 +1973,8 @@ op_spec op_init_table[]={@/
 @.TETRA@>
 {"OCTA", OCTA, 0x13f000},@/
 @.OCTA@>
+{"FILE", BYTEFILE, 0x1400},@/
+@.FILE@>
 {"BSPEC", BSPEC, 0x41400},
 @.BSPEC@>
 {"ESPEC", ESPEC, 0x141000},@/
@@ -2373,6 +2395,20 @@ else if (isdigit(*p)) {
 @.syntax error...@>
 }
 
+@ Filenames are used as operands to the \.{FILE} instruction. The filename
+is stored and the file number is put on the value stack.
+
+@<Scan a filename@>=
+{ @<Read a filename@>@;
+  if (k<0) err("filename expected");
+@.filename expected@>
+  val_ptr=1; 
+  top_val.link=NULL;
+  top_val.equiv.h=0; @+top_val.equiv.l=k;
+  top_val.status=pure;
+  goto operands_done;
+}
+
 @ @<Scan a symbol@>=
 {
   if (*p==':') tt=trie_search(trie_root,p+1);
@@ -2608,6 +2644,7 @@ if ((op_bits&no_label_bit) && lab_field[0]) {
 }
 @.label field...ignored@>
 if (op_bits&align_bits) @<Align the location pointer@>;
+if (opcode==BYTEFILE) @<Scan a filename@>;
 @<Scan the operand field@>;
 if (opcode==GREG) @<Allocate a global register@>;
 if (lab_field[0]) @<Define the label@>;
@@ -3103,6 +3140,19 @@ goto assemble_inst;
 
 @ @<Do a pseudo-operation...@>=
 switch(opcode) {
+ case BYTEFILE:@+{
+   int c, k;
+   FILE *f;
+   k = val_stack[0].equiv.l;
+   if (k<0) goto bypass;
+   f = fopen(filename[k],"rb");
+   if (f==NULL) {
+	 derr("unable to open file %s",filename[k]);@+goto bypass;@+}
+@.unable to open file@>
+   while ((c=fgetc(f))!=EOF) assemble(1,c,0);
+   fclose(f);
+   goto bypass;
+   @+}
  case LOC: cur_loc=val_stack[0].equiv;
  case IS: goto bypass;
  case PREFIX:@+if (!val_stack[0].link) err("not a valid prefix");
