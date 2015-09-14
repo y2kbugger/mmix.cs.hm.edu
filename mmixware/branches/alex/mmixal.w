@@ -2891,14 +2891,19 @@ default: derr("too many operands for opcode `%s'",op_field);
 for (j=0;j<val_ptr;j++) {
   @<Deal with cases where |val_stack[j]| is impure@>;
   k=1<<(opcode-BYTE);
-  if ((val_stack[j].equiv.h && opcode<OCTA) ||@|
-           (val_stack[j].equiv.l>0xffff && opcode<TETRA) ||@|
-           (val_stack[j].equiv.l>0xff && opcode<WYDE)) {
-    if (k==1) err("*constant doesn't fit in one byte")@;
+  if (k<8) {
+    octa s,u;
+    s=shift_left(val_stack[j].equiv,64-8*k);
+    u=shift_right(s,64-8*k,1); /* simulating an unsigned load */
+    s=shift_right(s,64-8*k,0); /* simulating a signed load */
+    if ((s.h!=val_stack[j].equiv.h || s.l!=val_stack[j].equiv.l) &&
+        (u.h!=val_stack[j].equiv.h || u.l!=val_stack[j].equiv.l)) {
+      if (k==1) err("*constant doesn't fit in one byte")@;
 @.constant doesn't fit...@>
-    else derr("*constant doesn't fit in %d bytes",k);
+      else derr("*constant doesn't fit in %d bytes",k);
+    @+}
+    assemble(k,val_stack[j].equiv.l,0);
   @+}
-  if (k<8) assemble(k,val_stack[j].equiv.l,0);
   else if (val_stack[j].status==undefined)
     assemble(4,0,0xf0), assemble(4,0,0xf0);
   else assemble(4,val_stack[j].equiv.h,0), assemble(4,val_stack[j].equiv.l,0);
