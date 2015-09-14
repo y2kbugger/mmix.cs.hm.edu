@@ -1002,6 +1002,10 @@ extern int scan_const @,@,@[ARGS((char*))@];
   /* read decimal or floating point constants */
 extern octa val; /* value returned by |scan_const| */
 extern char *next_char; /* pointer returned by |scan_const| */
+extern tetra store_sf @,@,@[ARGS((octa))@];
+ /* floating point conversion 64 bit to 32 bit */
+extern int exceptions; /* exception bits*/
+
 
 @ Here's a rudimentary check to see if arithmetic is in trouble.
 
@@ -2481,7 +2485,9 @@ else *p='\"', *--p=',';
 goto constant_found;
 
 @ @<Scan a decimal or floating constant@>=
+exceptions=0;
 k=scan_const(p);@+acc=val;@+p=next_char;
+if (exceptions) err("*possibly imprecise floating point representation");
 if (k==1) acc_type=floating; else acc_type=integer;
 constant_found: val_ptr++;
 top_val.link=NULL;
@@ -2916,7 +2922,13 @@ default: derr("too many operands for opcode `%s'",op_field);
 for (j=0;j<val_ptr;j++) {
   @<Deal with cases where |val_stack[j]| is impure@>;
   k=1<<(opcode-BYTE);
-  if (k<8) {
+  if (k==4 && val_stack[j].status==pure && val_stack[j].type==floating) {
+    exceptions=0;
+    val_stack[j].equiv.l=store_sf(val_stack[j].equiv);
+    if (exceptions) err("*possibly imprecise floating point representation");
+    assemble(4,val_stack[j].equiv.l,0);
+  @+}
+  else if (k<8) {
     octa s,u;
     s=shift_left(val_stack[j].equiv,64-8*k);
     u=shift_right(s,64-8*k,1); /* simulating an unsigned load */
