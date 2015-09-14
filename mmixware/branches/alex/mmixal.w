@@ -2399,7 +2399,8 @@ else if (isdigit(*p)) {
 is stored and the file number is put on the value stack.
 
 @<Scan a filename@>=
-{ @<Read a filename@>@;
+{ p=operand_list;
+  @<Read a filename@>@;
   if (k<0) err("filename expected");
 @.filename expected@>
   val_ptr=1; 
@@ -3147,7 +3148,7 @@ switch(opcode) {
    if (k<0) goto bypass;
    f = fopen(filename[k],"rb");
    if (f==NULL) {
-	 derr("unable to open file %s",filename[k]);@+goto bypass;@+}
+	 derr("unable to open file \"%s\"",filename[k]);@+goto bypass;@+}
 @.unable to open file@>
    while ((c=fgetc(f))!=EOF) assemble(1,c,0);
    fclose(f);
