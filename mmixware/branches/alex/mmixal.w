@@ -998,6 +998,10 @@ extern octa omult @,@,@[ARGS((octa y,octa z))@];
   /* unsigned $(|aux|,x)=y\times z$ */
 extern octa odiv @,@,@[ARGS((octa x,octa y,octa z))@];
   /* unsigned $(x,y)/z$; $|aux|=(x,y)\bmod z$ */
+extern int scan_const @,@,@[ARGS((char*))@];
+  /* read decimal or floating point constants */
+extern octa val; /* value returned by |scan_const| */
+extern char *next_char; /* pointer returned by |scan_const| */
 
 @ Here's a rudimentary check to see if arithmetic is in trouble.
 
@@ -1566,10 +1570,12 @@ address in the XYZ field of the instruction pointed to by |equiv|.''
 @d fix_xyz 2 /* |serial| code for \.{JMP} fixup */
 
 @<Type...@>=
+typedef enum {@!integer,@!floating,@!} @!typ;
 typedef struct sym_tab_struct {
   int serial; /* serial number of symbol; type number for fixups */
   struct sym_tab_struct *link; /* |DEFINED| status or link to fixup */
   octa equiv; /* the equivalent value */
+  typ type; /* |integer| or |floating|; used for |DEFINED| or |PREDEFINED| symbols */
 } sym_node;
 
 @ The allocation of new symbol table nodes proceeds in chunks, like the
@@ -1585,7 +1591,7 @@ sym_node* new_sym_node(serialize)
 {
   register sym_node *p=sym_avail;
   if (p) {
-    sym_avail=p->link;@+p->link=NULL;@+p->serial=0;@+p->equiv=zero_octa;
+    sym_avail=p->link;@+p->link=NULL;@+p->serial=0;@+p->equiv=zero_octa;@+p->type=integer;
   }@+else {
     p=next_sym_node;
     if (p==last_sym_node) {
@@ -1990,8 +1996,9 @@ op_init_size=(sizeof op_init_table)/sizeof(op_spec);
 for (j=0;j<op_init_size;j++) {
   tt=trie_search(op_root,op_init_table[j].name);
   pp=tt->sym=new_sym_node(false);
-  pp->link=PREDEFINED;
+  pp->link=PREDEFINED; 
   pp->equiv.h=op_init_table[j].code, pp->equiv.l=op_init_table[j].bits;
+  pp->type=integer;
 }
 
 @ @<Local...@>=
@@ -2004,6 +2011,7 @@ for (j=0;j<32;j++) {
   pp=tt->sym=new_sym_node(false);
   pp->link=PREDEFINED;
   pp->equiv.l=j;
+  pp->type=integer;
 }
 
 @ @<Glob...@>=
@@ -2118,6 +2126,7 @@ for (j=0;j<predef_size;j++) {
   pp=tt->sym=new_sym_node(false);
   pp->link=PREDEFINED;
   pp->equiv.h=predefs[j].h, pp->equiv.l=predefs[j].l;
+  pp->type=integer;
 }
 
 @ We place \.{Main} into the trie at the beginning of assembly,
@@ -2327,6 +2336,7 @@ typedef struct {
   octa equiv; /* current value */
   trie_node *link; /* trie reference for symbol */
   stat status; /* |pure|, |reg_val|, or |undefined| */
+  typ type; /* |integer| or |floating|, used with |pure| values only */
 } val_node;
 
 @ @d top_op op_stack[op_ptr-1] /* top entry on the operator stack */
@@ -2343,6 +2353,7 @@ prec precedence[]={unary,unary,unary,unary,zero,@|
  zero,zero,zero}; /* precedences of the respective |stack_op| values */
 stack_op rt_op; /* newly scanned operator */
 octa acc; /* temporary accumulator */
+typ acc_type; /* type of |acc| */
 
 @ @<Init...@>=
 op_stack=(stack_op*)calloc(buf_size,sizeof(stack_op));
@@ -2374,7 +2385,7 @@ scan_open:@+if (isletter(*p)) @<Scan a symbol@>@;
 else if (isdigit(*p)) {
   if (*(p+1)=='F') @<Scan a forward local@>@;
   else if (*(p+1)=='B') @<Scan a backward local@>@;
-  else @<Scan a decimal constant@>;
+  else @<Scan a decimal or floating constant@>;
 }@+else@+ switch(*p++) {
  case '#': @<Scan a hexadecimal constant@>;@+break;
  case '\'': @<Scan a character constant@>;@+break;
@@ -2418,10 +2429,11 @@ is stored and the file number is put on the value stack.
  symbol_found: val_ptr++;
   pp=tt->sym;
   if (!pp) pp=tt->sym=new_sym_node(true);
-  top_val.link=tt, top_val.equiv=pp->equiv;
+  top_val.link=tt, top_val.equiv=pp->equiv; top_val.type=pp->type;
   if (pp->link==PREDEFINED) pp->link=DEFINED;
   top_val.status=(pp->link==DEFINED? pure: pp->link==REGISTER? reg_val:
       undefined);
+  top_val.type=pp->type;
 }
 
 @ @<Scan a forward local@>=
@@ -2448,17 +2460,19 @@ for (j=0;j<10;j++) {
   forward_local_host[j].sym=&forward_local[j];
   backward_local_host[j].sym=&backward_local[j];
   backward_local[j].link=DEFINED;
+  backward_local[j].type=integer;
+
 }
 
 @ We have already checked to make sure that the character constant is legal.
 
 @<Scan a character constant@>=
-acc.h=0, acc.l=(unsigned char)*p;
+acc.h=0, acc.l=(unsigned char)*p, acc_type=integer;
 p+=2;
 goto constant_found;
 
 @ @<Scan a string constant@>=
-acc.h=0, acc.l=(unsigned char)*p;
+acc.h=0, acc.l=(unsigned char)*p, acc_type=integer;
 if (*p=='\"') {
   p++; acc.l=0; err("*null string is treated as zero");
 @.null string...@>
@@ -2466,21 +2480,19 @@ if (*p=='\"') {
 else *p='\"', *--p=',';
 goto constant_found;
 
-@ @<Scan a decimal constant@>=
-acc.h=0, acc.l=*p-'0';
-for (p++;isdigit(*p);p++) {
-  acc=oplus(acc,shift_left(acc,2));
-  acc=incr(shift_left(acc,1),*p-'0');
-}
+@ @<Scan a decimal or floating constant@>=
+k=scan_const(p);@+acc=val;@+p=next_char;
+if (k==1) acc_type=floating; else acc_type=integer;
 constant_found: val_ptr++;
 top_val.link=NULL;
 top_val.equiv=acc;
 top_val.status=pure;
+top_val.type=acc_type;
 
 @ @<Scan a hexadecimal constant@>=
 if (!isxdigit(*p)) err("illegal hexadecimal constant");
 @.illegal hexadecimal constant@>
-acc.h=acc.l=0;
+acc.h=acc.l=0; acc_type=integer;
 for (;isxdigit(*p);p++) {
   acc=incr(shift_left(acc,4),*p-'0');
   if (*p>='a') acc=incr(acc,'0'-'a'+10);
@@ -2489,7 +2501,7 @@ for (;isxdigit(*p);p++) {
 goto constant_found;
 
 @ @<Scan the current location@>=
-acc=cur_loc;
+acc=cur_loc; acc_type=integer;
 goto constant_found;
 
 @ @<Scan a binary operator or closing token, |rt_op|@>=
@@ -2544,6 +2556,7 @@ The most typical operator, and in some ways the fussiest one
 to deal with, is binary addition. Once we've written the code for
 this case, the other cases almost take care of themselves.
 
+
 @<Cases for binary...@>=
 case plus:@+if (top_val.status==undefined)
   err("cannot add an undefined quantity");
@@ -2552,6 +2565,8 @@ case plus:@+if (top_val.status==undefined)
   err("cannot add to an undefined quantity");
  if (top_val.status==reg_val && next_val.status==reg_val)
   err("cannot add two register numbers");
+ if (top_val.type==floating || next_val.type==floating)
+  err("cannot add floating numbers");
  next_val.equiv=oplus(next_val.equiv,top_val.equiv);
  fin_bin: next_val.status=(top_val.status==next_val.status? pure: reg_val);
  val_ptr--;
@@ -2560,15 +2575,19 @@ case plus:@+if (top_val.status==undefined)
 @ @d unary_check(verb) if (top_val.status!=pure)
                  derr("can %s pure values only",verb)
 
+@ @d floating_check(verb) if (top_val.type!=integer)
+                 derr("can %s integer values only",verb)
+
 @<Cases for unary...@>=
 case negate: unary_check("negate");
 @.can negate...@>
- top_val.equiv=ominus(zero_octa,top_val.equiv);@+goto delink;
-case complement: unary_check("complement");
+ if (top_val.type==floating) top_val.equiv.h^=0x80000000; 
+ else top_val.equiv=ominus(zero_octa,top_val.equiv);@+goto delink;
+case complement: unary_check("complement"); floating_check("complement");
 @.can complement...@>
  top_val.equiv.h=~top_val.equiv.h, top_val.equiv.l=~top_val.equiv.l;
  goto delink;
-case registerize: unary_check("registerize");
+case registerize: unary_check("registerize"); floating_check("registerize");
 @.can registerize...@>
  top_val.status=reg_val;@+goto delink;
 case serialize:@+if (!top_val.link)
@@ -2578,8 +2597,9 @@ case serialize:@+if (!top_val.link)
  top_val.status=pure;@+goto delink;
 
 @ @d binary_check(verb)
-    if (top_val.status!=pure || next_val.status!=pure)
-      derr("can %s pure values only",verb)
+    if (top_val.status!=pure || next_val.status!=pure ||
+        top_val.type!=integer || next_val.type!=integer)
+      derr("can %s pure integer values only",verb)
 
 @<Cases for binary...@>=
 case minus:@+if (top_val.status==undefined)
@@ -2589,6 +2609,8 @@ case minus:@+if (top_val.status==undefined)
   err("cannot subtract from an undefined quantity");
  if (top_val.status==reg_val && next_val.status!=reg_val)
   err("cannot subtract register number from pure value");
+ if (top_val.type==floating || next_val.type==floating)
+  err("cannot subtract floating numbers");
  next_val.equiv=ominus(next_val.equiv,top_val.equiv);@+goto fin_bin;
 case times: binary_check("multiply");
 @.can multiply...@>
@@ -2758,11 +2780,13 @@ if its predefined value has already been used.
 @<Define the label@>=
 {
   sym_node *new_link=DEFINED;
+  typ cur_type = integer;
   acc=cur_loc;
   if (opcode==IS) {
     if (val_stack[0].status==undefined) err("the operand is undefined");
 @.the operand is undefined@>
     cur_loc=val_stack[0].equiv;
+    cur_type=val_stack[0].type;
     if (val_stack[0].status==reg_val) new_link=REGISTER;
   }@+else if (opcode==GREG) cur_loc.h=0, cur_loc.l=cur_greg, new_link=REGISTER;
   @<Find the symbol table node, |pp|@>;
@@ -2781,7 +2805,7 @@ if its predefined value has already been used.
     do @<Fix prior references to this label@>@;@+while (pp->link);
   }
   if (isdigit(lab_field[0])) pp=&backward_local[lab_field[0]-'0'];
-  pp->equiv=cur_loc;@+ pp->link=new_link;
+  pp->equiv=cur_loc;@+ pp->link=new_link; pp->type=cur_type;
   @<Fix references that might be in the |val_stack|@>;
   if (listing_file && (opcode==IS || opcode==LOC))
     @<Make special listing to show the label equivalent@>;
@@ -2794,6 +2818,7 @@ if (!isdigit(lab_field[0]))
     if (val_stack[j].status==undefined && val_stack[j].link->sym==pp) {
       val_stack[j].status=(new_link==REGISTER? reg_val: pure);
       val_stack[j].equiv=cur_loc;
+      val_stack[j].type=cur_type;
     }
 
 @ @<Find the symbol table node, |pp|@>=
