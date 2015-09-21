@@ -49,6 +49,7 @@ forward	IS	1.0				% here forward is defined.
 %	Testing the FILE instruction
 
 a	FILE				% filename missing
+	FILE	"testalex.unterminated  % filename unterminated
 b	FILE	""			% empty filename
 c	FILE	"doesnt.exist"  	% file does not exist  
 d	FILE	"testalex.empty"	% file exists but is empty

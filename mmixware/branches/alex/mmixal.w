@@ -1112,14 +1112,6 @@ as a comment by the assembler.
 {
   for (p=buffer+1;isspace(*p);p++);
   for (j=0;isdigit(*p);p++) j=10*j+*p-'0';
-  @<Read a filename@>@;
-  if (k>0)
-  { cur_file=k;
-    line_no=j-1;
-  }
-}
-
-@ @<Read a filename@>=
   for (;isspace(*p);p++);
   if (*p=='\"') {
     if (!filename[filename_count]) {
@@ -1131,20 +1123,20 @@ as a comment by the assembler.
     for (p++,k=0;*p && *p!='\"' && k<FILENAME_MAX; p++,k++)
       filename[filename_count][k]=*p;
     if (k==FILENAME_MAX) panic("Capacity exceeded: File name too long");
-    if (*p=='\"' && *(p-1)!='\"') { /* yes, it's a filename */
+    if (*p=='\"' && *(p-1)!='\"') { /* yes, it's a line directive */
       filename[filename_count][k]='\0';
       for (k=0;strcmp(filename[k],filename[filename_count])!=0;k++);
       if (k==filename_count) {
         if (filename_count==256)
           panic("Capacity exceeded: More than 256 file names");
         filename_count++;
-      } 
-      else free(filename[filename_count]); 
-	} 
-	else k=-1;
-  } 
-  else k=-1;
-  
+      }
+      cur_file=k;
+      line_no=j-1;
+    }
+  }
+}
+
 @ Archaic versions of the \CEE/ library do not define |FILENAME_MAX|.
 
 @<Preprocessor definitions@>=
@@ -1983,7 +1975,7 @@ op_spec op_init_table[]={@/
 @.TETRA@>
 {"OCTA", OCTA, 0x13f000},@/
 @.OCTA@>
-{"FILE", BYTEFILE, 0x1400},@/
+{"FILE", BYTEFILE, 0x8000},@/
 @.FILE@>
 {"BSPEC", BSPEC, 0x41400},
 @.BSPEC@>
@@ -2000,7 +1992,7 @@ op_init_size=(sizeof op_init_table)/sizeof(op_spec);
 for (j=0;j<op_init_size;j++) {
   tt=trie_search(op_root,op_init_table[j].name);
   pp=tt->sym=new_sym_node(false);
-  pp->link=PREDEFINED; 
+  pp->link=PREDEFINED;
   pp->equiv.h=op_init_table[j].code, pp->equiv.l=op_init_table[j].bits;
   pp->type=integer;
 }
@@ -2410,21 +2402,6 @@ else if (isdigit(*p)) {
 @.syntax error...@>
 }
 
-@ Filenames are used as operands to the \.{FILE} instruction. The filename
-is stored and the file number is put on the value stack.
-
-@<Scan a filename@>=
-{ p=operand_list;
-  @<Read a filename@>@;
-  if (k<0) err("filename expected");
-@.filename expected@>
-  val_ptr=1; 
-  top_val.link=NULL;
-  top_val.equiv.h=0; @+top_val.equiv.l=k;
-  top_val.status=pure;
-  goto operands_done;
-}
-
 @ @<Scan a symbol@>=
 {
   if (*p==':') tt=trie_search(trie_root,p+1);
@@ -2465,7 +2442,6 @@ for (j=0;j<10;j++) {
   backward_local_host[j].sym=&backward_local[j];
   backward_local[j].link=DEFINED;
   backward_local[j].type=integer;
-
 }
 
 @ We have already checked to make sure that the character constant is legal.
@@ -2561,7 +2537,6 @@ or binary operators found in the expression being scanned.
 The most typical operator, and in some ways the fussiest one
 to deal with, is binary addition. Once we've written the code for
 this case, the other cases almost take care of themselves.
-
 
 @<Cases for binary...@>=
 case plus:@+if (top_val.status==undefined)
@@ -2673,7 +2648,7 @@ if ((op_bits&no_label_bit) && lab_field[0]) {
 }
 @.label field...ignored@>
 if (op_bits&align_bits) @<Align the location pointer@>;
-if (opcode==BYTEFILE) @<Scan a filename@>;
+if (opcode==BYTEFILE) goto operands_done;
 @<Scan the operand field@>;
 if (opcode==GREG) @<Allocate a global register@>;
 if (lab_field[0]) @<Define the label@>;
@@ -2916,9 +2891,27 @@ default: derr("too many operands for opcode `%s'",op_field);
 @.too many operands...@>
 }
 
-@ The many-operand operators are |BYTE|, |WYDE|, |TETRA|, and |OCTA|.
+@ The many-operand operators are |FILE|, |BYTE|, |WYDE|, |TETRA|, and |OCTA|.
 
 @<Do a many-operand operation@>=
+{@+if (opcode==BYTEFILE)@+{
+   int c;
+   FILE *f;
+   if (*operand_list!='\"')@+{err("missing filename string");@+goto bypass;@+}
+@.missing filename@>
+   p=operand_list+1;
+   for(q=p; *q!='\"';q++);
+   *q=0;
+   if (p==q) @+{err("empty filename");@+goto bypass;@+}
+@.empty filename@>
+   f = fopen(p,"rb");
+   if (f==NULL) {
+	 derr("unable to open file \"%s\"",p);@+goto bypass;@+}
+@.unable to open file@>
+   while ((c=fgetc(f))!=EOF) assemble(1,c,0);
+   fclose(f);
+   goto bypass;
+   @+}
 for (j=0;j<val_ptr;j++) {
   @<Deal with cases where |val_stack[j]| is impure@>;
   k=1<<(opcode-BYTE);
@@ -2944,6 +2937,7 @@ for (j=0;j<val_ptr;j++) {
   else if (val_stack[j].status==undefined)
     assemble(4,0,0xf0), assemble(4,0,0xf0);
   else assemble(4,val_stack[j].equiv.h,0), assemble(4,val_stack[j].equiv.l,0);
+@+}
 }
 
 @ @<Deal with cases where |val_stack[j]| is impure@>=
@@ -3183,19 +3177,6 @@ goto assemble_inst;
 
 @ @<Do a pseudo-operation...@>=
 switch(opcode) {
- case BYTEFILE:@+{
-   int c, k;
-   FILE *f;
-   k = val_stack[0].equiv.l;
-   if (k<0) goto bypass;
-   f = fopen(filename[k],"rb");
-   if (f==NULL) {
-	 derr("unable to open file \"%s\"",filename[k]);@+goto bypass;@+}
-@.unable to open file@>
-   while ((c=fgetc(f))!=EOF) assemble(1,c,0);
-   fclose(f);
-   goto bypass;
-   @+}
  case LOC: cur_loc=val_stack[0].equiv;
  case IS: goto bypass;
  case PREFIX:@+if (!val_stack[0].link) err("not a valid prefix");
