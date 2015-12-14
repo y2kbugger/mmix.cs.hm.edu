@@ -2896,8 +2896,8 @@ default: derr("too many operands for opcode `%s'",op_field);
 
 @<Do a many-operand operation@>=
 {@+if (opcode==BYTEFILE)@+{
-   int c;
-   FILE *f;
+   int c,i;
+   FILE *f, *g;
    if (*operand_list!='\"')@+{err("missing filename string");@+goto bypass;@+}
 @.missing filename@>
    p=operand_list+1;
@@ -2909,7 +2909,13 @@ default: derr("too many operands for opcode `%s'",op_field);
    if (f==NULL) {
 	 derr("unable to open file \"%s\"",p);@+goto bypass;@+}
 @.unable to open file@>
-   while ((c=fgetc(f))!=EOF) assemble(1,c,0);
+   i=0;
+   while((c=fgetc(f))!=EOF) {assemble(1,c,0); if (++i>8 && (cur_loc.l&0x3)==0) break; }
+   g=listing_file; listing_file=NULL;
+   i=0;
+   while ((c=fgetc(f))!=EOF){ i++; assemble(1,c,0); }
+   listing_file=g;
+   if (i>0 && listing_file) fprintf(listing_file,"         ...       and %d more byte%s from %s\n", i, i>1?"s":"", p);
    fclose(f);
    goto bypass;
    @+}
