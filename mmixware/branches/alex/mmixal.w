@@ -2915,7 +2915,8 @@ default: derr("too many operands for opcode `%s'",op_field);
    i=0;
    while ((c=fgetc(f))!=EOF){ i++; assemble(1,c,0); }
    listing_file=g;
-   if (i>0 && listing_file) fprintf(listing_file,"         ...       and %d more byte%s from %s\n", i, i>1?"s":"", p);
+   if (i>0 && listing_file) fprintf(listing_file,
+      "         ...       and %d more byte%s from %s\n", i, i>1?"s":"", p);
    fclose(f);
    goto bypass;
    @+}
