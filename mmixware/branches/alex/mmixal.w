@@ -2461,10 +2461,13 @@ if (*p=='\"') {
 else *p='\"', *--p=',';
 goto constant_found;
 
-@ @<Scan a decimal or floating constant@>=
+@ @d X_BIT (1<<8) /* floating inexact */
+
+@<Scan a decimal or floating constant@>=
 exceptions=0;
 k=scan_const(p);@+acc=val;@+p=next_char;
-if (exceptions) err("*possibly imprecise floating point representation");
+if ((exceptions&X_BIT) && check_X_BIT) err("*possibly imprecise floating point representation"); 
+if (exceptions&~X_BIT) err("*error in floating point representation");
 if (k==1) acc_type=floating; else acc_type=integer;
 constant_found: val_ptr++;
 top_val.link=NULL;
@@ -3241,6 +3244,8 @@ output to a text file called \.{listingname}.
 as single instructions, by assembling auxiliary instructions that make
 temporary use of global register~\$255.
 
+\bull\.{-X}\quad Warn if there is no exact representation for a floating point constant.
+
 \bull\.{-b bufsize}\quad Allow up to \.{bufsize} characters per line of input.
 
 @ Here, finally, is the overall structure of this program.
@@ -3285,6 +3290,7 @@ int main(argc,argv)
 @<Process the command line@>=
 for (j=1;j<argc-1 && argv[j][0]=='-';j++) if (!argv[j][2]) {
   if (argv[j][1]=='x') expanding=1;
+  else if (argv[j][1]=='X') check_X_BIT=1;
   else if (argv[j][1]=='o') j++,strcpy(obj_file_name,argv[j]);
   else if (argv[j][1]=='l') j++,strcpy(listing_name,argv[j]);
   else if (argv[j][1]=='b' && sscanf(argv[j+1],"%d",&buf_size)==1) j++;
@@ -3293,7 +3299,7 @@ for (j=1;j<argc-1 && argv[j][0]=='-';j++) if (!argv[j][2]) {
 if (j!=argc-1) {
   fprintf(stderr,"Usage: %s %s sourcefilename\n",
 @.Usage: ...@>
-    argv[0],"[-x] [-l listingname] [-b buffersize] [-o objectfilename]");
+    argv[0],"[-x] [-X] [-l listingname] [-b buffersize] [-o objectfilename]");
   exit(-1);
 }
 src_file_name=argv[j];
@@ -3321,6 +3327,7 @@ char obj_file_name[FILENAME_MAX+1]; /* name of the binary output file */
 char listing_name[FILENAME_MAX+1]; /* name of the optional listing file */
 FILE *src_file, *obj_file, *listing_file;
 int expanding; /* are we expanding instructions when base address fail? */
+int check_X_BIT; /* are we checking the X_BIT when reading floating point constants? */
 int buf_size; /* maximum number of characters per line of input */
 
 @ @<Init...@>=
