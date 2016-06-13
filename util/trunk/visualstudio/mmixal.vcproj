@@ -25,7 +25,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Build C files"
-				CommandLine="copy mmixware\boilerplate.w boilerplate.w&#x0D;&#x0A;ctangle mmixware\mmixal.w mmixal-win.ch mmixal.c&#x0D;&#x0A;ctangle mmixware\mmix-arith.w arith-win.ch mmix-arith.c"
+				CommandLine="copy mmixware\boilerplate.w boilerplate.w&#x0D;&#x0A;ctangle mmixware\mmixal.w mmixal-win.ch mmixal.c&#x0D;&#x0A;ctangle mmixware\mmix-arith.w arith-win.ch mmix-arith.c&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -107,7 +107,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Build C files"
-				CommandLine="copy mmixware\boilerplate.w boilerplate.w&#x0D;&#x0A;ctangle mmixware\mmixal.w mmixal-win.ch mmixal.c&#x0D;&#x0A;ctangle mmixware\mmix-arith.w arith-win.ch mmix-arith.c"
+				CommandLine="copy mmixware\boilerplate.w boilerplate.w&#x0D;&#x0A;ctangle mmixware\mmixal.w mmixal-win.ch mmixal.c&#x0D;&#x0A;ctangle mmixware\mmix-arith.w arith-win.ch mmix-arith.c&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -193,11 +193,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mmixware\mmix-arith.w"
+				>
+			</File>
+			<File
 				RelativePath=".\mmixal-win.ch"
 				>
 			</File>
 			<File
 				RelativePath=".\mmixal.c"
+				>
+			</File>
+			<File
+				RelativePath=".\mmixware\mmixal.w"
 				>
 			</File>
 		</Filter>
