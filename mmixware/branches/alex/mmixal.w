@@ -2985,13 +2985,13 @@ if (val_stack[2].status==undefined) err("Z field is undefined");
 @.Z field is undefined@>
 if (val_stack[2].status==reg_val) {
   if (!(op_bits&(immed_bit+zr_bit+zar_bit)))
-    derr("*Z field of `%s' should not be a register number",op_field);
+    derr("Z field of `%s' should not be a register number",op_field);
 @.Z field...register number@>
 }@+ else if (op_bits&immed_bit) opcode++; /* immediate */
 else if (op_bits&zr_bit)
-  derr("*Z field of `%s' should be a register number",op_field);
+  derr("Z field of `%s' should be a register number",op_field);
 if (val_stack[2].equiv.h || val_stack[2].equiv.l>0xff)
-  err("*Z field doesn't fit in one byte");
+  err("Z field doesn't fit in one byte");
 @.Z field doesn't fit...@>
 z=val_stack[2].equiv.l&0xff;
 
@@ -3000,12 +3000,12 @@ if (val_stack[1].status==undefined) err("Y field is undefined");
 @.Y field is undefined@>
 if (val_stack[1].status==reg_val) {
   if (!(op_bits&(yr_bit+yar_bit)))
-    derr("*Y field of `%s' should not be a register number",op_field);
+    derr("Y field of `%s' should not be a register number",op_field);
 @.Y field...register number@>
 }@+ else if (op_bits&yr_bit)
-  derr("*Y field of `%s' should be a register number",op_field);
+  derr("Y field of `%s' should be a register number",op_field);
 if (val_stack[1].equiv.h || val_stack[1].equiv.l>0xff)
-  err("*Y field doesn't fit in one byte");
+  err("Y field doesn't fit in one byte");
 @.Y field doesn't fit...@>
 y=val_stack[1].equiv.l&0xff;@+
 yz=(y<<8)+z;
@@ -3015,12 +3015,12 @@ if (val_stack[0].status==undefined) err("X field is undefined");
 @.X field is undefined@>
 if (val_stack[0].status==reg_val) {
   if (!(op_bits&(xr_bit+xar_bit)))
-    derr("*X field of `%s' should not be a register number",op_field);
+    derr("X field of `%s' should not be a register number",op_field);
 @.X field...register number@>
 }@+ else if (op_bits&xr_bit)
-  derr("*X field of `%s' should be a register number",op_field);
+  derr("X field of `%s' should be a register number",op_field);
 if (val_stack[0].equiv.h || val_stack[0].equiv.l>0xff)
-  err("*X field doesn't fit in one byte");
+  err("X field doesn't fit in one byte");
 @.X field doesn't fit...@>
 x=val_stack[0].equiv.l&0xff;@+
 xyz=(x<<16)+yz;
@@ -3033,7 +3033,7 @@ if (val_stack[1].status==undefined) {
 @.YZ field is undefined@>
 }@+else if (val_stack[1].status==reg_val) {
   if (!(op_bits&(immed_bit+yzr_bit+yzar_bit)))
-    derr("*YZ field of `%s' should not be a register number",op_field);
+    derr("YZ field of `%s' should not be a register number",op_field);
 @.YZ field...register number@>
   if (opcode==SET) val_stack[1].equiv.l<<=8,opcode=0xc1; /* change to \.{OR} */
   else if (op_bits&mem_bit)
@@ -3044,13 +3044,13 @@ if (val_stack[1].status==undefined) {
   if (opcode==SET) opcode=0xe3; /* change to \.{SETL} */
   else if (op_bits&immed_bit) opcode++; /* immediate */
   else if (op_bits&yzr_bit) {
-    derr("*YZ field of `%s' should be a register number",op_field);
+    derr("YZ field of `%s' should be a register number",op_field);
   }
   if (op_bits&rel_addr_bit)
     @<Assemble YZ as a relative address and |goto assemble_X|@>;
 }
 if (val_stack[1].equiv.h || val_stack[1].equiv.l>0xffff)
-  err("*YZ field doesn't fit in two bytes");
+  err("YZ field doesn't fit in two bytes");
 @.YZ field doesn't fit...@>
 yz=val_stack[1].equiv.l&0xffff;
 goto assemble_X;
@@ -3072,7 +3072,7 @@ goto assemble_X;
 {
   octa source, dest;
   if (val_stack[1].equiv.l&3)
-    err("*relative address is not divisible by 4");
+    err("relative address is not divisible by 4");
 @.relative address...@>
   source=shift_right(cur_loc,2,0);
   dest=shift_right(val_stack[1].equiv,2,0);
@@ -3136,17 +3136,17 @@ if (val_stack[0].status==undefined) {
 @.the operand is undefined@>
 }@+else if (val_stack[0].status==reg_val) {
   if (!(op_bits&(xyzr_bit+xyzar_bit)))
-    derr("*operand of `%s' should not be a register number",op_field);
+    derr("operand of `%s' should not be a register number",op_field);
 @.operand...register number@>
 }@+ else { /* |val_stack[0].status==pure| */
   if (op_bits&xyzr_bit)
-    derr("*operand of `%s' should be a register number",op_field);
+    derr("operand of `%s' should be a register number",op_field);
   if (op_bits&rel_addr_bit)
     @<Assemble XYZ as a relative address and |goto assemble_inst|@>;
 }
 if (opcode>0xff) @<Do a pseudo-operation and |goto bypass|@>;
 if (val_stack[0].equiv.h || val_stack[0].equiv.l>0xffffff)
-  err("*XYZ field doesn't fit in three bytes");
+  err("XYZ field doesn't fit in three bytes");
 @.XYZ field doesn't fit...@>
 xyz=val_stack[0].equiv.l&0xffffff;
 goto assemble_inst;
@@ -3168,7 +3168,7 @@ goto assemble_inst;
 {
   octa source, dest;
   if (val_stack[0].equiv.l&3)
-    err("*relative address is not divisible by 4");
+    err("relative address is not divisible by 4");
 @.relative address...@>
   source=shift_right(cur_loc,2,0);
   dest=shift_right(val_stack[0].equiv,2,0);
@@ -3202,7 +3202,7 @@ switch(opcode) {
    }
    goto bypass;
  case BSPEC:@+if (val_stack[0].equiv.l>0xffff || val_stack[0].equiv.h)
-     err("*operand of `BSPEC' doesn't fit in two bytes");
+     err("operand of `BSPEC' doesn't fit in two bytes");
 @.operand of `BSPEC'...@>
    mmo_loc();@+mmo_sync();
    mmo_lopp(lop_spec,val_stack[0].equiv.l);
