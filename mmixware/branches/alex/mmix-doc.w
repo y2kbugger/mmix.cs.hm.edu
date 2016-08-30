@@ -2689,11 +2689,10 @@ registers). And not even the operating system is allowed to change
 rN~(the serial number) or the stack pointers
 rO~and~rS.
 
-\bull\<PUT X,\0 `put into special register';
+\bull\<PUT X,\0 `put into special register'.\>
 @.PUT@>
-the Y field must be zero.\>
 The special register identified by~X is set to
-the contents of register Z or to the unsigned byte~Z itself,
+the contents of register Z or to the unsigned wyde~YZ itself,
 if permissible. Some changes are, however, impermissible:
 Bits of rA that are always zero must remain zero; the leading seven bytes
 of rG and rL must remain zero, and rL must not exceed~rG;
