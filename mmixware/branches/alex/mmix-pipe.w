@@ -1735,6 +1735,11 @@ source operand, \Hex{10}~means rX is a source operand, \Hex{20}~means
 rX is a destination, \Hex{40}~means YZ is part of a relative address,
 \Hex{80}~means the control changes at this point.
 
+@d Z_is_immed_bit 0x1
+@d Z_is_source_bit 0x2
+@d Y_is_immed_bit 0x4
+@d Y_is_source_bit 0x8
+@d X_is_source_bit 0x10
 @d X_is_dest_bit 0x20
 @d rel_addr_bit 0x40
 @d ctl_change_bit 0x80
@@ -1771,7 +1776,7 @@ unsigned char flags[256]={
 0x2a, 0x29, 0x2a, 0x29, 0x2a, 0x29, 0x2a, 0x29, /* \.{MUX}, \dots\ */
 0x20, 0x20, 0x20, 0x20, 0x30, 0x30, 0x30, 0x30, /* \.{SETH}, \dots\ */
 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, /* \.{ORH}, \dots\ */
-0xc0, 0xc0, 0xe0, 0xe0, 0x60, 0x60, 0x02, 0x01, /* \.{JMP}, \dots\ */
+0xc0, 0xc0, 0xe0, 0xe0, 0x60, 0x60, 0x02, 0x00, /* \.{JMP}, \dots\ */
 0x80, 0x80, 0x00, 0x02, 0x01, 0x00, 0x20, 0x8a}; /* \.{POP}, \dots\ */
 
 @ @<Convert relative...@>=
@@ -2023,14 +2028,14 @@ cool_G=g[rG].up->o.l;
 if (resuming)
   @<Insert special operands when resuming an interrupted operation@>@;
 else{
-  if (f&0x10) @<Set |cool->b| from register X@>@;
+  if (f&X_is_source_bit) @<Set |cool->b| from register X@>@;
   if (third_operand[op] && (cool->i!=trap))
     @<Set |cool->b| and/or |cool->ra| from special register@>;
-  if (f&0x1) cool->z.o.l=cool->zz;
-  else if (f&0x2) @<Set |cool->z| from register Z@>@;
-  else if ((op&0xf0)==0xe0) @<Set |cool->z| as an immediate wyde@>;
-  if (f&0x4) cool->y.o.l=cool->yy;
-  else if (f&0x8) @<Set |cool->y| from register Y@>@;
+  if (f&Z_is_immed_bit) cool->z.o.l=cool->zz;
+  else if (f&Z_is_source_bit) @<Set |cool->z| from register Z@>@;
+  else if ((op&0xf0)==SETH||op==PUTI) @<Set |cool->z| as an immediate wyde@>;
+  if (f&Y_is_immed_bit) cool->y.o.l=cool->yy;
+  else if (f&Y_is_source_bit) @<Set |cool->y| from register Y@>@;
 }
 
 @ @<Set |cool->z| from register Z@>=
@@ -2241,7 +2246,7 @@ Moreover, we will see later that such drastic \.{PUT}s defer execution until
 they reach the hot seat.
 
 @<Special cases of instruction dispatch@>=
-case put:@+ if (cool->yy!=0 || cool->xx>=32) goto illegal_inst;
+case put:@+ if (cool->xx>=32) goto illegal_inst;
  if (cool->xx>=8) {
    if (cool->xx<=11 && cool->xx!=8) goto illegal_inst;
    if (cool->xx<=18 && !(cool->loc.h&sign_bit)) goto privileged_inst;

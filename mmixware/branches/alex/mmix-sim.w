@@ -1717,7 +1717,7 @@ op_info info[256]={
 {"GETA",0x60,0,0,1,"%l = %#z"},@|
 {"GETAB",0x60,0,0,1,"%l = %#z"},@|
 {"PUT",0x02,0,0,1,"%s = %r"},@|
-{"PUTI",0x01,0,0,1,"%s = %r"},@|
+{"PUTI",0x00,0,0,1,"%s = %r"},@|
 {"POP",0x80,rJ,0,3,"%lrL=%a, rO=%#b, -> %#y%?+"},@|
 {"RESUME",0x00,0,0,5,"{%#b} -> %#z"},@|
 {"SAVE",0x20,0,20,1,"%l = %#x"},@|
@@ -1738,13 +1738,13 @@ op_info info[256]={
 if (resuming && rop!=RESUME_AGAIN)
   @<Install special operands when resuming an interrupted operation@>@;
 else {
-  if (f&0x10) @<Set |b| from register X@>;
+  if (f&X_is_source_bit) @<Set |b| from register X@>;
   if (info[op].third_operand) @<Set |b| from special register@>;
-  if (f&0x1) z.l=zz;
-  else if (f&0x2) @<Set |z| from register Z@>@;
-  else if ((op&0xf0)==SETH) @<Set |z| as an immediate wyde@>;
-  if (f&0x4) y.l=yy;
-  else if (f&0x8) @<Set |y| from register Y@>;
+  if (f&Z_is_immed_bit) z.l=zz;
+  else if (f&Z_is_source_bit) @<Set |z| from register Z@>@;
+  else if ((op&0xf0)==SETH||op==PUTI) @<Set |z| as an immediate wyde@>;
+  if (f&Y_is_immed_bit) y.l=yy;
+  else if (f&Y_is_source_bit) @<Set |y| from register Y@>;
 }
 
 @ There are 256 global registers, |g[0]| through |g[255]|; the
@@ -2199,8 +2199,7 @@ case CSWAP: case CSWAPI: w.l&=-8;@+ll=mem_find(w);
 case GET:@+if (yy!=0 || zz>=32) goto illegal_inst;
   x=g[zz];
   goto store_x;
-case PUTI: z.l=yz, yy=0; 
-case PUT: if (yy!=0 || xx>=32) goto illegal_inst;
+case PUT: case PUTI:@+ if (xx>=32) goto illegal_inst;
   strcpy(rhs,"%z = %#z");
   if (xx>=8) {
     if (xx<=11 && xx!=8) goto illegal_inst; /* can't change rN, rO, rS */
