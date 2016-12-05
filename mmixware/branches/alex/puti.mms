@@ -1,0 +1,8 @@
+	LOC	#100
+
+Main	SET	$0,4000
+	PUT	rD,1000
+	DIVU	$255,$0,$0
+	PUT	rD,0,$0
+	PUT	rD,1,$0
+	TRAP	0,Halt,0
