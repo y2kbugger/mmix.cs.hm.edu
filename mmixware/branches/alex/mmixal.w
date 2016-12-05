@@ -3327,7 +3327,7 @@ char obj_file_name[FILENAME_MAX+1]; /* name of the binary output file */
 char listing_name[FILENAME_MAX+1]; /* name of the optional listing file */
 FILE *src_file, *obj_file, *listing_file;
 int expanding; /* are we expanding instructions when base address fail? */
-int check_X_BIT; /* are we checking the X_BIT when reading floating point constants? */
+int check_X_BIT; /* are we checking the |X_BIT| when reading floating point constants? */
 int buf_size; /* maximum number of characters per line of input */
 
 @ @<Init...@>=
