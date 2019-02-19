@@ -169,7 +169,7 @@ value, perhaps in another format; for example, the command `\.{l10\#}'
 will show local register 10 in hexadecimal notation, then the command
 `\.!' will show it in decimal and `\..' will show it as a floating point
 number. If \.{<t>} is empty, the previous type will be repeated;
-the default type is decimal. Register \.{rA} is equivalent to \.{g22},
+the default type is decimal. Register \.{rA} is equivalent to \.{g21},
 according to the numbering used in \.{GET} and \.{PUT} commands.
 
 The `\.{<t>}' in any of these commands can also have the form
@@ -1717,7 +1717,7 @@ op_info info[256]={
 {"GETA",0x60,0,0,1,"%l = %#z"},@|
 {"GETAB",0x60,0,0,1,"%l = %#z"},@|
 {"PUT",0x02,0,0,1,"%s = %r"},@|
-{"PUTI",0x00,0,0,1,"%s = %r"},@|
+{"PUTI",0x01,0,0,1,"%s = %r"},@|
 {"POP",0x80,rJ,0,3,"%lrL=%a, rO=%#b, -> %#y%?+"},@|
 {"RESUME",0x00,0,0,5,"{%#b} -> %#z"},@|
 {"SAVE",0x20,0,20,1,"%l = %#x"},@|
@@ -1742,7 +1742,7 @@ else {
   if (info[op].third_operand) @<Set |b| from special register@>;
   if (f&Z_is_immed_bit) z.l=zz;
   else if (f&Z_is_source_bit) @<Set |z| from register Z@>@;
-  else if ((op&0xf0)==SETH||op==PUTI) @<Set |z| as an immediate wyde@>;
+  else if ((op&0xf0)==SETH) @<Set |z| as an immediate wyde@>;
   if (f&Y_is_immed_bit) y.l=yy;
   else if (f&Y_is_source_bit) @<Set |y| from register Y@>;
 }
@@ -2199,7 +2199,7 @@ case CSWAP: case CSWAPI: w.l&=-8;@+ll=mem_find(w);
 case GET:@+if (yy!=0 || zz>=32) goto illegal_inst;
   x=g[zz];
   goto store_x;
-case PUT: case PUTI:@+ if (xx>=32) goto illegal_inst;
+case PUT: case PUTI:@+ if (yy!=0 || xx>=32) goto illegal_inst;
   strcpy(rhs,"%z = %#z");
   if (xx>=8) {
     if (xx<=11 && xx!=8) goto illegal_inst; /* can't change rN, rO, rS */
