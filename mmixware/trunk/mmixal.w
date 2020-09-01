@@ -1040,7 +1040,7 @@ if (!buffer || !lab_field || !op_field || !operand_list || !err_buf)
 @.No room...@>
 
 @ @<Glob...@>=
-Char *buffer; /* raw input of the current line */
+static Char *buffer; /* raw input of the current line */
 Char *buf_ptr; /* current position within |buffer| */
 Char *lab_field; /* copy of the label field of the current instruction */
 Char *op_field; /* copy of the opcode field of the current instruction */
@@ -1071,7 +1071,7 @@ buf_ptr=buffer;
 }
 
 @ @<Glob...@>=
-int cur_file; /* index of the current file in |filename| */
+static int cur_file; /* index of the current file in |filename| */
 int line_no; /* current position in the file */
 bool line_listed; /* have we listed the buffer contents? */
 bool long_warning_given; /* have we given the hint about \.{-b}? */
@@ -1172,7 +1172,7 @@ void update_listing_loc(k)
 }
 
 @ @<Glob...@>=
-octa cur_loc; /* current location of assembled output */
+static octa cur_loc; /* current location of assembled output */
 octa listing_loc; /* current location on the listing */
 unsigned char hold_buf[4]; /* assembled bytes */
 unsigned char held_bits; /* which bytes of |hold_buf| are active? */
@@ -3238,9 +3238,9 @@ if (listing_name[0]) {
 char *src_file_name; /* name of the \MMIXAL\ input file */
 char obj_file_name[FILENAME_MAX+1]; /* name of the binary output file */
 char listing_name[FILENAME_MAX+1]; /* name of the optional listing file */
-FILE *src_file, *obj_file, *listing_file;
+static FILE *src_file, *obj_file, *listing_file;
 int expanding; /* are we expanding instructions when base address fail? */
-int buf_size; /* maximum number of characters per line of input */
+static int buf_size; /* maximum number of characters per line of input */
 
 @ @<Init...@>=
 @<Open the files@>;
